@@ -46,6 +46,10 @@ namespace Rinnegan
                 data = data,
             };
         }
+        protected Result<TResponse> Error(ResultStatus status, string key, object value)
+        {
+            return new Result<TResponse>(status, key, value);
+        }
 
         private bool IsValid(out Result<TResponse> result)
         {
