@@ -116,27 +116,5 @@ namespace Rinnegan
                 return new Result<TResponse>(ResultStatus.UnSuccess);
             }
         }
-
-
-
-        private const string pn = "۰۱۲۳۴۵۶۷۸۹";
-        private const string en = "0123456789";
-        protected string Clean(string input)
-        {
-            if (string.IsNullOrEmpty(input)) return input;
-
-            string result = input.Trim();
-            for (int i = 0; i < 10; i++)
-                result = result.Replace(pn[i], en[i]);
-            return result;
-        }
-    }
-
-    public class Rinnegan<TDbContext, TResponse> : Rinnegan<TDbContext, TResponse, object> where TDbContext : DbContext
-    {
-        public Rinnegan() : base(false)
-        { }
-        public Rinnegan(TDbContext _db) : base(false, _db)
-        { }
     }
 }

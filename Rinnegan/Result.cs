@@ -42,7 +42,7 @@ namespace Rinnegan
         #endregion
 
         #region Functions
-        public void AddErrro(string key, object value)
+        public void AddError(string key, object value)
         {
             this.errors.Add(key, value);
         }
