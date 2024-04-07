@@ -88,6 +88,10 @@ namespace Rinnegan
         {
             return new Result<TResponse>(ResultStatus.NotImplemented);
         }
+        protected virtual Result<TResponse> UnhandledException(Exception ex)
+        {
+            return new Result<TResponse>(ResultStatus.UnSuccess);
+        }
         public Result<TResponse> RunExecute()
         {
             Result<TResponse> result;
@@ -99,7 +103,7 @@ namespace Rinnegan
             }
             catch (Exception ex)
             {
-                return new Result<TResponse>(ResultStatus.UnSuccess);
+                return UnhandledException(ex);
             }
         }
         public async Task<Result<TResponse>> RunExecuteAsync()
@@ -113,7 +117,7 @@ namespace Rinnegan
             }
             catch (Exception ex)
             {
-                return new Result<TResponse>(ResultStatus.UnSuccess);
+                return UnhandledException(ex);
             }
         }
     }
