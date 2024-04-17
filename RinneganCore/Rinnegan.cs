@@ -3,32 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RinneganCore
 {
-    public class RinneganCore<TDbContext, TResponse, TRequest> : IDbContext<TDbContext>, IRequest<TRequest>, IDisposable where TDbContext : DbContext
+    public class Rinnegan<TResponse, TRequest> : IRequest<TRequest>
     {
-        public TRequest? request { get; set; }
-        public TDbContext db { get; set; }
+        public TRequest request { get; set; }
 
-        public RinneganCore(TRequest _request) : base((TDbContext)Activator.CreateInstance(typeof(TDbContext)))
-        {
-            this.request = _request;
-        }
-        public RinneganCore(TRequest _request, TDbContext db) : base(db)
-        {
-            this.request = _request;
-        }
-
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                this.Db.Dispose();
-            }
-        }
 
         protected Result<TResponse> OK(TResponse data)
         {
@@ -41,7 +19,10 @@ namespace RinneganCore
         {
             return new Result<TResponse>(status, key, value);
         }
-
+        protected Result<TResponse> Error(Result result)
+        {
+            return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
+        }
         private bool IsValid(out Result<TResponse> result)
         {
             result = null;
@@ -83,8 +64,10 @@ namespace RinneganCore
         {
             return new Result<TResponse>(ResultStatus.UnSuccess);
         }
-        public Result<TResponse> RunExecute()
+        public Result<TResponse> RunExecute(TRequest request)
         {
+            this.request = request;
+
             Result<TResponse> result;
             if (!IsValid(out result)) return result;
 
@@ -94,11 +77,13 @@ namespace RinneganCore
             }
             catch (Exception ex)
             {
-                return new Result<TResponse>(ResultStatus.UnSuccess);
+                return UnhandledException(ex);
             }
         }
-        public async Task<Result<TResponse>> RunExecuteAsync()
+        public async Task<Result<TResponse>> RunExecuteAsync(TRequest request)
         {
+            this.request = request;
+
             Result<TResponse> result;
             if (!IsValid(out result)) return result;
 
@@ -108,7 +93,7 @@ namespace RinneganCore
             }
             catch (Exception ex)
             {
-                return new Result<TResponse>(ResultStatus.UnSuccess);
+                return UnhandledException(ex);
             }
         }
     }

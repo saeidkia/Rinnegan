@@ -5,7 +5,7 @@ VisualStudioVersion = 17.9.34607.119
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rinnegan", "Rinnegan\Rinnegan.csproj", "{1DF0E08B-1548-471A-BF2D-9F8B1E91F881}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RinneganCore", "RinneganCore\RinneganCore.csproj", "{DAAC03D0-A1A6-4808-8551-E3D493629EF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RinneganCore", "RinneganCore\RinneganCore.csproj", "{DAAC03D0-A1A6-4808-8551-E3D493629EF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -9,35 +9,17 @@ using System.Threading.Tasks;
 
 namespace Rinnegan
 {
-    public class Rinnegan<TDbContext, TResponse, TRequest> : IDbContext<TDbContext>, IRequest<TRequest>, IDisposable where TDbContext : DbContext
+    public class Rinnegan<TResponse, TRequest> : IRequest<TRequest>
     {
         public TRequest request { get; set; }
-        public TDbContext db { get; set; }
 
         public Rinnegan(TRequest _request)
         {
-            this.db = (TDbContext)Activator.CreateInstance(typeof(TDbContext));
             this.request = _request;
         }
 
-        public Rinnegan(TRequest _request, TDbContext _db)
-        {
-            this.db = _db;
-            this.request = _request;
-        }
 
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                this.db.Dispose();
-            }
-        }
+
 
         protected Result<TResponse> OK(TResponse data)
         {
@@ -50,7 +32,10 @@ namespace Rinnegan
         {
             return new Result<TResponse>(status, key, value);
         }
-
+        protected Result<TResponse> Error(Result result)
+        {
+            return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
+        }
         private bool IsValid(out Result<TResponse> result)
         {
             result = null;

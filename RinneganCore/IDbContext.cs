@@ -1,11 +1,9 @@
-﻿namespace RinneganCore
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace RinneganCore
 {
-    public abstract class IDbContext<T> where T : class
+    public interface IDbContext<TDbContext> where TDbContext : DbContext, IDisposable
     {
-        protected T Db { get; set; }
-        protected IDbContext(T db)
-        {
-            Db = db;
-        }
+        TDbContext db { get; set; }
     }
 }

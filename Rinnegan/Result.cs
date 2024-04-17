@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Rinnegan
 {
-    public class Result<T>
+    public class Result
     {
         #region Properties
         private ResultStatus _status;
@@ -14,10 +14,7 @@ namespace Rinnegan
         public int status => (int)_status;
         public string message => _status.ToString();
         public Dictionary<string, object> errors { get; set; }
-
-        public T data { get; set; }
         #endregion
-
 
         #region Constractors
         private Result()
@@ -51,6 +48,21 @@ namespace Rinnegan
             return this._status;
         }
         #endregion
+    }
+
+    public class Result<T> : Result
+    {
+        public T data { get; set; }
+
+        public Result(ResultStatus status) : base(status)
+        {
+        }
+        public Result(ResultStatus status, string errorKey, object errorValue) : base(status, errorKey, errorValue)
+        {
+        }
+        public Result(ResultStatus status, Dictionary<string, object> errors) : base(status, errors)
+        {
+        }
     }
 
 

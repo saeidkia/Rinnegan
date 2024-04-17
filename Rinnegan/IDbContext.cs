@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Rinnegan
 {
-    public interface IDbContext<T> where T : class
+    public interface IDbContext<TDbContext> where TDbContext : DbContext, IDisposable
     {
-        T db { get; set; }
+        TDbContext db { get; set; }
     }
 }
