@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Data.Entity;
 using System.Linq;
-using System.Runtime.Remoting.Contexts;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Rinnegan
@@ -36,14 +33,12 @@ namespace Rinnegan
         {
             return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
         }
-        private bool IsValid(out Result<TResponse> result)
+
+
+        protected virtual Result<TResponse> OnExecuting()
         {
-            result = null;
-            if (this.request == null)
-            {
-                result = new Result<TResponse>(ResultStatus.BadRequest, nameof(this.request), "payload not found");
-                return false;
-            }
+            if (this.request == null && typeof(TRequest) != typeof(object))
+                return new Result<TResponse>(ResultStatus.MissingPayload);
             // Create a ValidationContext for the user object
             var context = new ValidationContext(this.request, null, null);
 
@@ -63,28 +58,35 @@ namespace Rinnegan
 
             if (!isValid)
                 // create list of error based on validation
-                result = new Result<TResponse>(ResultStatus.BadRequest,
+                return new Result<TResponse>(ResultStatus.BadRequest,
                                             validationResults.Select(vr => new KeyValuePair<string, object>(vr.MemberNames.First(), vr.ErrorMessage))
                                                 .ToDictionary(vr => vr.Key, vr => vr.Value));
 
-            return isValid;
+            return null;
         }
         protected virtual Result<TResponse> Execute()
         {
             return new Result<TResponse>(ResultStatus.NotImplemented);
         }
+        protected virtual void OnExecuted(Result<TResponse> result)
+        { }
+
         protected virtual Result<TResponse> UnhandledException(Exception ex)
         {
             return new Result<TResponse>(ResultStatus.UnSuccess);
         }
         public Result<TResponse> RunExecute()
         {
-            Result<TResponse> result;
-            if (!IsValid(out result)) return result;
+            Result<TResponse> result = OnExecuting();
+            if (result != null) return result;
 
             try
             {
-                return this.Execute();
+                result = this.Execute();
+
+                OnExecuted(result);
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -93,12 +95,16 @@ namespace Rinnegan
         }
         public async Task<Result<TResponse>> RunExecuteAsync()
         {
-            Result<TResponse> result;
-            if (!IsValid(out result)) return result;
+            Result<TResponse> result = OnExecuting();
+            if (result != null) return result;
 
             try
             {
-                return await Task.Run<Result<TResponse>>(() => this.Execute());
+                result = await Task.Run<Result<TResponse>>(() => this.Execute());
+
+                OnExecuted(result);
+
+                return result;
             }
             catch (Exception ex)
             {
