@@ -24,8 +24,7 @@ namespace RinneganCore
             return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
         }
 
-
-        protected virtual Result<TResponse> OnExecuting()
+        private Result<TResponse> Validation()
         {
             if (this.request == null && typeof(TRequest) != typeof(object))
                 return new Result<TResponse>(ResultStatus.MissingPayload);
@@ -54,12 +53,19 @@ namespace RinneganCore
 
             return null;
         }
+
+        protected virtual Result<TResponse> OnExecuting(Result<TResponse> result)
+        {
+            return result;
+        }
         protected virtual Result<TResponse> Execute()
         {
             return new Result<TResponse>(ResultStatus.NotImplemented);
         }
-        protected virtual void OnExecuted(Result<TResponse> result)
-        { }
+        protected virtual Result<TResponse> OnExecuted(Result<TResponse> result)
+        {
+            return result;
+        }
 
 
         protected virtual Result<TResponse> UnhandledException(Exception ex)
@@ -70,15 +76,19 @@ namespace RinneganCore
         {
             this.request = request;
 
-            Result<TResponse> result = OnExecuting();
-            if (result != null) return result;
+            Result<TResponse> result = Validation();
+
+            result = OnExecuting(result);
+
+            if (result != null)
+                return result;
 
 
             try
             {
                 result = this.Execute();
 
-                OnExecuted(result);
+                result = OnExecuted(result);
 
                 return result;
             }
@@ -91,14 +101,18 @@ namespace RinneganCore
         {
             this.request = request;
 
-            Result<TResponse> result = OnExecuting();
-            if (result != null) return result;
+            Result<TResponse> result = Validation();
+
+            result = OnExecuting(result);
+
+            if (result != null)
+                return result;
 
             try
             {
                 result = await Task.Run<Result<TResponse>>(() => this.Execute());
 
-                OnExecuted(result);
+                result = OnExecuted(result);
 
                 return result;
             }
