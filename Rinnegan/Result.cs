@@ -63,6 +63,11 @@ namespace Rinnegan
         public Result(ResultStatus status, Dictionary<string, object> errors) : base(status, errors)
         {
         }
+
+        public RinneganJsonResult AsJsonResult()
+        {
+            return new RinneganJsonResult(this);
+        }
     }
 
 
