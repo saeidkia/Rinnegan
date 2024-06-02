@@ -5,7 +5,7 @@ namespace RinneganCore
 {
     public class Rinnegan<TResponse, TRequest> : IRequest<TRequest>
     {
-        public TRequest request { get; set; }
+        public TRequest? request { get; set; }
 
 
         protected Result<TResponse> OK(TResponse data)
