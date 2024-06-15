@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Rinnegan
 {
-    public class Rinnegan<TResponse, TRequest> : IRequest<TRequest>
+    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
     {
         public TRequest request { get; set; }
 
