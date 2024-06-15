@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RinneganCore
 {
-    public class Rinnegan<TResponse, TRequest> : IRequest<TRequest>
+    public class Rinnegan<TRequest,TResponse> : IRequest<TRequest>
     {
         public TRequest? request { get; set; }
 
