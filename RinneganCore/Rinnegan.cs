@@ -1,21 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace RinneganCore
 {
-    public class Rinnegan<TRequest,TResponse> : IRequest<TRequest>
+    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
     {
         public TRequest? request { get; set; }
 
-
         protected Result<TResponse> OK(TResponse data)
         {
-            return new Result<TResponse>(ResultStatus.OK)
+            return new Result<TResponse>(HttpStatusCode.OK)
             {
                 data = data,
             };
         }
-        protected Result<TResponse> Error(ResultStatus status, string key, object value)
+        protected Result<TResponse> Error(HttpStatusCode status, string key, object value)
         {
             return new Result<TResponse>(status, key, value);
         }
@@ -24,10 +24,10 @@ namespace RinneganCore
             return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
         }
 
-        private Result<TResponse> Validation()
+        protected virtual Result<TResponse> Validation()
         {
             if (this.request == null && typeof(TRequest) != typeof(object))
-                return new Result<TResponse>(ResultStatus.MissingPayload);
+                return new Result<TResponse>(HttpStatusCode.BadRequest, "", "missing payload");
             // Create a ValidationContext for the user object
             var context = new ValidationContext(this.request, null, null);
 
@@ -47,79 +47,63 @@ namespace RinneganCore
 
             if (!isValid)
                 // create list of error based on validation
-                return new Result<TResponse>(ResultStatus.BadRequest,
+                return new Result<TResponse>(HttpStatusCode.BadRequest,
                                             validationResults.Select(vr => new KeyValuePair<string, object>(vr.MemberNames.First(), vr.ErrorMessage))
                                                 .ToDictionary(vr => vr.Key, vr => vr.Value));
 
             return null;
         }
-
-        protected virtual Result<TResponse> OnExecuting(Result<TResponse> result)
+        protected virtual Result<TResponse> OnExecuting()
         {
-            return result;
+            return null;
         }
         protected virtual Result<TResponse> Execute()
         {
-            return new Result<TResponse>(ResultStatus.NotImplemented);
+            return new Result<TResponse>(HttpStatusCode.NotImplemented);
         }
         protected virtual Result<TResponse> OnExecuted(Result<TResponse> result)
         {
             return result;
         }
-
-
         protected virtual Result<TResponse> UnhandledException(Exception ex)
         {
-            return new Result<TResponse>(ResultStatus.UnSuccess);
+            return new Result<TResponse>(HttpStatusCode.InternalServerError);
         }
-        public Result<TResponse> RunExecute(TRequest request)
+
+
+        public Result<TResponse> RunExecute(TRequest? request)
         {
             this.request = request;
-
-            Result<TResponse> result = Validation();
-
-            result = OnExecuting(result);
-
-            if (result != null)
-                return result;
-
+            Result<TResponse> result;
 
             try
             {
-                result = this.Execute();
-
+                result = Validation() ?? OnExecuting() ?? Execute();
                 result = OnExecuted(result);
-
-                return result;
             }
             catch (Exception ex)
             {
-                return UnhandledException(ex);
+                result = UnhandledException(ex);
             }
+
+            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
-        public async Task<Result<TResponse>> RunExecuteAsync(TRequest request)
+        public async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
         {
             this.request = request;
-
-            Result<TResponse> result = Validation();
-
-            result = OnExecuting(result);
-
-            if (result != null)
-                return result;
+            Result<TResponse> result;
 
             try
             {
-                result = await Task.Run<Result<TResponse>>(() => this.Execute());
-
+                result = await Task.Run(() => (Validation() ?? OnExecuting() ?? Execute()));
                 result = OnExecuted(result);
-
-                return result;
             }
             catch (Exception ex)
             {
-                return UnhandledException(ex);
+                result = UnhandledException(ex);
             }
+
+            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
     }
 }
