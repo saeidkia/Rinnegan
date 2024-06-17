@@ -24,7 +24,7 @@ namespace RinneganCore
             return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
         }
 
-        protected virtual Result<TResponse> Validation()
+        protected virtual Result<TResponse>? Validation()
         {
             if (this.request == null && typeof(TRequest) != typeof(object))
                 return new Result<TResponse>(HttpStatusCode.BadRequest, "", "missing payload");
@@ -48,12 +48,12 @@ namespace RinneganCore
             if (!isValid)
                 // create list of error based on validation
                 return new Result<TResponse>(HttpStatusCode.BadRequest,
-                                            validationResults.Select(vr => new KeyValuePair<string, object>(vr.MemberNames.First(), vr.ErrorMessage))
+                                            validationResults.Select(vr => new KeyValuePair<string, object?>(vr.MemberNames.First(), vr.ErrorMessage))
                                                 .ToDictionary(vr => vr.Key, vr => vr.Value));
 
             return null;
         }
-        protected virtual Result<TResponse> OnExecuting()
+        protected virtual Result<TResponse>? OnExecuting()
         {
             return null;
         }
