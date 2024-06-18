@@ -9,29 +9,26 @@ namespace RinneganCore
     {
         #region Properties
         protected HttpStatusCode _status;
-
-        //public int status => (int)_status;
-        //public string message => _status.ToString();
-        public Dictionary<string, object> errors { get; set; }
+        public Dictionary<string, object?> errors { get; set; }
         #endregion
 
         #region Constractors
         private Result()
         {
-            this.errors = new Dictionary<string, object>();
+            this.errors = new Dictionary<string, object?>();
         }
         public Result(HttpStatusCode status)
         {
             this._status = status;
-            this.errors = new Dictionary<string, object>();
+            this.errors = new Dictionary<string, object?>();
         }
         public Result(HttpStatusCode status, string errorKey, object errorValue)
         {
             this._status = status;
-            this.errors = new Dictionary<string, object>();
+            this.errors = new Dictionary<string, object?>();
             this.errors.Add(errorKey, errorValue);
         }
-        internal Result(HttpStatusCode status, Dictionary<string, object> errors)
+        internal Result(HttpStatusCode status, Dictionary<string, object?> errors)
         {
             this._status = status;
             this.errors = errors;
@@ -57,10 +54,10 @@ namespace RinneganCore
         public Result(HttpStatusCode status) : base(status)
         {
         }
-        public Result(HttpStatusCode status, string errorKey, object errorValue) : base(status, errorKey, errorValue)
+        public Result(HttpStatusCode status, string errorKey, object? errorValue) : base(status, errorKey, errorValue)
         {
         }
-        internal Result(HttpStatusCode status, Dictionary<string, object> errors) : base(status, errors)
+        internal Result(HttpStatusCode status, Dictionary<string, object?> errors) : base(status, errors)
         {
         }
 
