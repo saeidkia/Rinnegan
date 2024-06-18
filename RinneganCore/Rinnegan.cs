@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 
@@ -7,6 +8,7 @@ namespace RinneganCore
     public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
     {
         public TRequest? request { get; set; }
+        private Cache? cache { get; set; }
 
         protected Result<TResponse> OK(TResponse data)
         {
@@ -22,6 +24,32 @@ namespace RinneganCore
         protected Result<TResponse> Error(Result result)
         {
             return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
+        }
+
+        private Result<TResponse>? FromCache()
+        {
+            if (this.cache == null)
+                return null;
+
+            Result<TResponse>? result;
+            this.cache.found = this.cache.MemoryCache.TryGetValue(this.cache.Key, out result);
+
+            return result;
+        }
+        private void SaveCache(Result<TResponse>? result)
+        {
+            // cache not set
+            // cache found data
+            // result is null
+            // result is not OK
+            if (this.cache == null || this.cache.found || result == null || result.GetStatus() != HttpStatusCode.OK)
+                return;
+
+            this.cache.MemoryCache.Set(this.cache.Key, result, DateTimeOffset.Now.Add(this.cache.TimeSpan));
+        }
+        protected virtual Cache EnableCaching()
+        {
+            return null;
         }
 
         protected virtual Result<TResponse>? Validation()
@@ -81,10 +109,12 @@ namespace RinneganCore
         {
             this.request = request;
             Result<TResponse> result;
+            this.cache = EnableCaching();
 
             try
             {
-                result = Validation() ?? OnExecuting() ?? Execute();
+                result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute();
+                SaveCache(result);
                 result = OnExecuted(result);
             }
             catch (Exception ex)
@@ -98,10 +128,12 @@ namespace RinneganCore
         {
             this.request = request;
             Result<TResponse> result;
+            this.cache = EnableCaching();
 
             try
             {
-                result = await Task.Run(() => (Validation() ?? OnExecuting() ?? Execute()));
+                result = await Task.Run(() => (Validation() ?? OnExecuting() ?? FromCache() ?? Execute()));
+                SaveCache(result);
                 result = OnExecuted(result);
             }
             catch (Exception ex)
