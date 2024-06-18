@@ -26,8 +26,14 @@ namespace RinneganCore
 
         protected virtual Result<TResponse> Validation()
         {
-            if (this.request == null && typeof(TRequest) != typeof(object))
+            if (this.request == null)
+            {
+                if (typeof(TRequest) == typeof(object))
+                    return null;
+
                 return new Result<TResponse>(HttpStatusCode.BadRequest, "", "missing payload");
+            }
+
             // Create a ValidationContext for the user object
             var context = new ValidationContext(this.request, null, null);
 
