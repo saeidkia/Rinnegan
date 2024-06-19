@@ -5,7 +5,7 @@ using System.Net;
 
 namespace RinneganCore
 {
-    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
+    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest> where TRequest : new()
     {
         public TRequest? request { get; set; }
         private Cache? cache { get; set; }
@@ -56,10 +56,11 @@ namespace RinneganCore
         {
             if (this.request == null)
             {
-                if (typeof(TRequest) == typeof(object))
+                var type = typeof(TRequest);
+                if (!type.IsClass || type.Name == "String") 
                     return null;
 
-                return new Result<TResponse>(HttpStatusCode.BadRequest, "", "missing payload");
+                this.request = new TRequest();
             }
 
             // Create a ValidationContext for the user object
