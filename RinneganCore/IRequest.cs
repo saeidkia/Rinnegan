@@ -1,6 +1,6 @@
 ﻿namespace RinneganCore
 {
-    public interface IRequest<T> where T:new()
+    public interface IRequest<T>
     {
         T request { get; set; }
     }

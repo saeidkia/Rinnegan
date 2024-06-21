@@ -5,7 +5,7 @@ using System.Net;
 
 namespace RinneganCore
 {
-    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest> where TRequest : new()
+    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
     {
         public TRequest? request { get; set; }
         private Cache? cache { get; set; }
@@ -60,7 +60,7 @@ namespace RinneganCore
                 if (!type.IsClass || type.Name == "String") 
                     return null;
 
-                this.request = new TRequest();
+                this.request = (TRequest)Activator.CreateInstance(type);
             }
 
             // Create a ValidationContext for the user object
