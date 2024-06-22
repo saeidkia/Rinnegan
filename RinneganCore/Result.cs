@@ -57,7 +57,7 @@ namespace RinneganCore
         public Result(HttpStatusCode status, string errorKey, object? errorValue) : base(status, errorKey, errorValue)
         {
         }
-        internal Result(HttpStatusCode status, Dictionary<string, object?> errors) : base(status, errors)
+        public Result(HttpStatusCode status, Dictionary<string, object?> errors) : base(status, errors)
         {
         }
 
