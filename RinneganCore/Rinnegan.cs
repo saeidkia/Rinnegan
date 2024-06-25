@@ -5,10 +5,10 @@ using System.Net;
 
 namespace RinneganCore
 {
-    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
+    public class Rinnegan<TRequest, TResponse>
     {
-        public TRequest? request { get; set; }
-        private Cache? cache { get; set; }
+        public TRequest? request;
+        private Cache? cache;
 
         protected Result<TResponse> OK(TResponse data)
         {

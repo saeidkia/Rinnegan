@@ -20,13 +20,12 @@ namespace RinneganCore
             if (!toCheck.IsGenericType)
                 return false;
 
-            if (!validTypes.Any(t => t.Name == toCheck.Name))
+            if (!validTypes.Any(t =>t.Namespace == toCheck.Namespace && t.Name == toCheck.Name))
                 return false;
 
             return true;
         }
-
-        public static IServiceCollection AddRinnegan(this IServiceCollection services, Action<RinneganOptions> rinneganOptions)
+        private static IServiceCollection AddRinnegan(this IServiceCollection services, Action<RinneganOptions> rinneganOptions)
         {
             var rinneganOptionModel = new RinneganOptions();
             rinneganOptions(rinneganOptionModel);
@@ -35,6 +34,7 @@ namespace RinneganCore
             var typesToRegister = rinneganOptionModel.Assemblies.SelectMany(a => a.GetTypes())
                 .Where(t => t.IsClass && t.IsSubclassOfRinnegan(rinneganOptionModel.ValidParentTypes) && !rinneganOptionModel.IgnoreNameSpaces.Any(ins => ins == t.Namespace)).ToList();
 
+
             foreach (var type in typesToRegister)
             {
                 services.AddTransient(type);
@@ -42,8 +42,33 @@ namespace RinneganCore
 
             return services;
         }
+
+        private static bool IsRinnegan(this Type @this,Type rinnegan)
+        {
+            if (@this == null || !@this.IsClass)
+                return false;
+
+            if (@this.Namespace == rinnegan.Namespace && @this.Name == rinnegan.Name)
+                return true;
+
+            return @this.BaseType.IsRinnegan(rinnegan);
+        }
+        public static IServiceCollection AddRinnegan(this IServiceCollection services, Assembly? assembly)
+        {
+            if (assembly == null)
+                throw new ArgumentNullException(nameof(assembly));
+            var types = assembly
+                .GetTypes()
+                .Where(t => t.BaseType.IsRinnegan(typeof(Rinnegan<,>)));
+
+            foreach (var type in types)
+                services.AddTransient(type);
+
+            return services;
+        }
         public class RinneganOptions
         {
+
             public IEnumerable<Assembly> Assemblies { get; set; }
             public IEnumerable<System.Type> ValidParentTypes { get; set; }
             public IEnumerable<string> IgnoreNameSpaces { get; set; }
