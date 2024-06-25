@@ -82,6 +82,7 @@ namespace Rinnegan
         UnprocessableContent = 422,     //  unable to execute by condition
         UnSuccess = 500,                //  internal server error
         NotImplemented = 501,           //  not implemented
+        BadGateway = 502,               //  Bad Gateway
         MissingPayload = 512,           //  missing payload
     }
 }
