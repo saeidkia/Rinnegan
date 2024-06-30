@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 
@@ -57,7 +57,7 @@ namespace RinneganCore
             if (this.request == null)
             {
                 var type = typeof(TRequest);
-                if (!type.IsClass || type.Name == "String") 
+                if (!type.IsClass || type.Name == "String")
                     return null;
 
                 this.request = (TRequest)Activator.CreateInstance(type);
