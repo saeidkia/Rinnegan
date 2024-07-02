@@ -5,7 +5,7 @@ using System.Net;
 
 namespace RinneganCore
 {
-    public class Rinnegan<TRequest, TResponse>
+    public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
     {
         public TRequest? request;
         private Cache? cache;
