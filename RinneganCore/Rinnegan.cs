@@ -47,7 +47,7 @@ namespace RinneganCore
 
             this.cache.MemoryCache.Set(this.cache.Key, result, DateTimeOffset.Now.Add(this.cache.TimeSpan));
         }
-        protected virtual Cache EnableCaching()
+        protected virtual Cache? EnableCaching()
         {
             return null;
         }
