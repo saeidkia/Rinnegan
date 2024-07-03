@@ -7,8 +7,9 @@ namespace RinneganCore
 {
     public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
     {
-        public TRequest? request;
+        protected TRequest? request;
         private Cache? cache;
+
 
         protected Result<TResponse> OK(TResponse data)
         {

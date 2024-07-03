@@ -2,30 +2,26 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using System.Runtime.Caching;
 
 namespace Rinnegan
 {
-    public class Rinnegan<TRequest, TResponse> : IRequest<TRequest>
+    public class Rinnegan<TRequest, TResponse>
     {
-        public TRequest request { get; set; }
-
-        public Rinnegan(TRequest _request)
-        {
-            this.request = _request;
-        }
-
-
+        protected TRequest request;
+        private Cache cache;
 
 
         protected Result<TResponse> OK(TResponse data)
         {
-            return new Result<TResponse>(ResultStatus.OK)
+            return new Result<TResponse>(HttpStatusCode.OK)
             {
                 data = data,
             };
         }
-        protected Result<TResponse> Error(ResultStatus status, string key, object value)
+        protected Result<TResponse> Error(HttpStatusCode status, string key, object value)
         {
             return new Result<TResponse>(status, key, value);
         }
@@ -34,10 +30,43 @@ namespace Rinnegan
             return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
         }
 
-        private Result<TResponse> Validation()
+        private Result<TResponse> FromCache()
         {
-            if (this.request == null && typeof(TRequest) != typeof(object))
-                return new Result<TResponse>(ResultStatus.MissingPayload);
+            if (this.cache == null)
+                return null;
+
+            var result = MemoryCache.Default.Get(this.cache.Key) as Result<TResponse>;
+            if (result != null)
+                this.cache.found = true;
+
+            return result;
+        }
+        private void SaveCache(Result<TResponse> result)
+        {
+            // cache not set
+            // cache found data
+            // result is null
+            // result is not OK
+            if (this.cache == null || this.cache.found || result == null || result.GetStatus() != HttpStatusCode.OK)
+                return;
+
+            MemoryCache.Default.Add(this.cache.Key, result, DateTimeOffset.Now.Add(this.cache.TimeSpan));
+        }
+        protected virtual Cache EnableCaching()
+        {
+            return null;
+        }
+
+        protected virtual Result<TResponse> Validation()
+        {
+            if (this.request == null)
+            {
+                var type = typeof(TRequest);
+                if (!type.IsClass || type.Name == "String")
+                    return null;
+
+                this.request = (TRequest)Activator.CreateInstance(type);
+            }
             // Create a ValidationContext for the user object
             var context = new ValidationContext(this.request, null, null);
 
@@ -57,73 +86,67 @@ namespace Rinnegan
 
             if (!isValid)
                 // create list of error based on validation
-                return new Result<TResponse>(ResultStatus.BadRequest,
+                return new Result<TResponse>(HttpStatusCode.BadRequest,
                                             validationResults.Select(vr => new KeyValuePair<string, object>(vr.MemberNames.First(), vr.ErrorMessage))
                                                 .ToDictionary(vr => vr.Key, vr => vr.Value));
 
             return null;
         }
-
-        protected virtual Result<TResponse> OnExecuting(Result<TResponse> result)
+        protected virtual Result<TResponse> OnExecuting()
         {
-            return result;
+            return null;
         }
         protected virtual Result<TResponse> Execute()
         {
-            return new Result<TResponse>(ResultStatus.NotImplemented);
+            return new Result<TResponse>(HttpStatusCode.NotImplemented);
         }
         protected virtual Result<TResponse> OnExecuted(Result<TResponse> result)
         {
             return result;
         }
-
         protected virtual Result<TResponse> UnhandledException(Exception ex)
         {
-            return new Result<TResponse>(ResultStatus.UnSuccess);
+            return new Result<TResponse>(HttpStatusCode.InternalServerError);
         }
-        public Result<TResponse> RunExecute()
+
+
+        public Result<TResponse> RunExecute(TRequest request)
         {
-            Result<TResponse> result = Validation();
-
-            result = OnExecuting(result);
-
-            if (result != null)
-                return result;
+            this.request = request;
+            Result<TResponse> result;
+            this.cache = EnableCaching();
 
             try
             {
-                result = this.Execute();
-
+                result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute();
+                SaveCache(result);
                 result = OnExecuted(result);
-
-                return result;
             }
             catch (Exception ex)
             {
-                return UnhandledException(ex);
+                result = UnhandledException(ex);
             }
+
+            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
-        public async Task<Result<TResponse>> RunExecuteAsync()
+        public async Task<Result<TResponse>> RunExecuteAsync(TRequest request)
         {
-            Result<TResponse> result = Validation();
-
-            result = OnExecuting(result);
-
-            if (result != null)
-                return result;
+            this.request = request;
+            Result<TResponse> result;
+            this.cache = EnableCaching();
 
             try
             {
-                result = await Task.Run<Result<TResponse>>(() => this.Execute());
-
+                result = await Task.Run(() => (Validation() ?? OnExecuting() ?? FromCache() ?? Execute()));
+                SaveCache(result);
                 result = OnExecuted(result);
-
-                return result;
             }
             catch (Exception ex)
             {
-                return UnhandledException(ex);
+                result = UnhandledException(ex);
             }
+
+            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
     }
 }
