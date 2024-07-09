@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
@@ -7,6 +8,7 @@ namespace RinneganCore
 {
     public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
     {
+        public Result<TResponse>? Result = new Result<TResponse>(HttpStatusCode.NotExtended);
         protected TRequest? request;
         private Cache? cache;
 
@@ -93,11 +95,15 @@ namespace RinneganCore
         {
             return null;
         }
-        protected virtual Result<TResponse> Execute()
+        protected virtual Result<TResponse>? Execute()
         {
-            return new Result<TResponse>(HttpStatusCode.NotImplemented);
+            return null;
         }
-        protected virtual Result<TResponse> OnExecuted(Result<TResponse> result)
+        protected virtual async Task<Result<TResponse>?> ExecuteAsync()
+        {
+            return null;
+        }
+        protected virtual Result<TResponse>? OnExecuted(Result<TResponse>? result)
         {
             return result;
         }
@@ -110,40 +116,41 @@ namespace RinneganCore
         public Result<TResponse> RunExecute(TRequest? request)
         {
             this.request = request;
-            Result<TResponse> result;
+            //Result<TResponse>? result;
             this.cache = EnableCaching();
 
             try
             {
-                result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute();
-                SaveCache(result);
-                result = OnExecuted(result);
+                Result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
+                SaveCache(Result);
+                Result = OnExecuted(Result);
             }
             catch (Exception ex)
             {
-                result = UnhandledException(ex);
+                Result = UnhandledException(ex);
             }
 
-            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            return Result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
         public async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
         {
             this.request = request;
-            Result<TResponse> result;
+            //Result<TResponse>? result;
             this.cache = EnableCaching();
 
             try
             {
-                result = await Task.Run(() => (Validation() ?? OnExecuting() ?? FromCache() ?? Execute()));
-                SaveCache(result);
-                result = OnExecuted(result);
+                Result = await Task.Run(async () => (Validation() ?? OnExecuting() ?? FromCache() ?? Execute() ?? await ExecuteAsync()));
+                SaveCache(Result);
+                Result = OnExecuted(Result);
             }
             catch (Exception ex)
             {
-                result = UnhandledException(ex);
+                Result = UnhandledException(ex);
             }
 
-            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            return Result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
+
     }
 }
