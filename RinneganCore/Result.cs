@@ -62,15 +62,16 @@ namespace RinneganCore
         {
         }
 
-        public ObjectResult AsObjectResult()
-        {
-            return new ObjectResult(this)
-            {
-                StatusCode = (int)this._status,
-            };
-        }
+        //public ObjectResult AsObjectResult()
+        //{
+        //    return new ObjectResult(this)
+        //    {
+        //        StatusCode = (int)this._status,
+        //    };
+        //}
 
     }
+
 
 
     //public enum ResultStatus
