@@ -8,17 +8,6 @@ namespace RinneganCore
 {
     public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
     {
-        public Result<TResponse>? Result
-        {
-            get
-            {
-                if (_result == null)
-                    throw new Exception($"need to call {nameof(RunExecute)}() or {nameof(RunExecuteAsync)}()");
-
-                return _result;
-            }
-        }
-        private Result<TResponse>? _result;
         protected TRequest? request;
         private Cache? cache;
 
@@ -123,7 +112,7 @@ namespace RinneganCore
         }
 
 
-        public Rinnegan<TRequest, TResponse> RunExecute(TRequest? request)
+        public Result<TResponse> RunExecute(TRequest? request)
         {
             this.request = request;
             Result<TResponse>? result;
@@ -139,11 +128,9 @@ namespace RinneganCore
             {
                 result = UnhandledException(ex);
             }
-            _result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
-
-            return this;
+            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
-        public async Task<Rinnegan<TRequest, TResponse>> RunExecuteAsync(TRequest? request)
+        public async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
         {
             this.request = request;
             Result<TResponse>? result;
@@ -159,9 +146,7 @@ namespace RinneganCore
             {
                 result = UnhandledException(ex);
             }
-            _result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
-
-            return this;
+            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
         }
 
 
@@ -172,11 +157,17 @@ namespace RinneganCore
                 StatusCode = (int)result.GetStatus(),
             };
         }
-        public IActionResult AsActionResult(Controller? controller = null)
+        public IActionResult AsActionResult(TRequest? request, Controller? controller = null)
         {
-            var result = RunExecute(request);
+            var result = this.RunExecute(request);
 
-            return ActionResult(controller, this.Result);
+            return ActionResult(controller, result);
+        }
+        public async Task<IActionResult> AsActionResultAsync(TRequest? request, Controller? controller = null)
+        {
+            var result = await this.RunExecuteAsync(request);
+
+            return ActionResult(controller, result);
         }
     }
 }

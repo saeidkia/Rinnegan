@@ -8,7 +8,7 @@ namespace RinneganCore
 {
     public interface IRinnegan<TRequest, TResponse>
     {
-        Rinnegan<TRequest,TResponse> RunExecute(TRequest? request);
-        Task<Rinnegan<TRequest,TResponse>> RunExecuteAsync(TRequest? request);
+        Result<TResponse> RunExecute(TRequest? request);
+        Task<Result<TResponse>> RunExecuteAsync(TRequest? request);
     }
 }
