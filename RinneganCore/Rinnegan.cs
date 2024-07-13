@@ -150,7 +150,7 @@ namespace RinneganCore
         }
 
 
-        protected virtual IActionResult ActionResult(Controller? controller, Result<TResponse>? result)
+        protected virtual IActionResult ActionResult(Controller? controller, Result<TResponse> result)
         {
             return new ObjectResult(result)
             {
