@@ -20,12 +20,15 @@ namespace RinneganCore
         {
             if (assembly == null)
                 throw new ArgumentNullException(nameof(assembly));
-            var types = assembly
+            var serviceDescriptors = assembly
                 .GetTypes()
-                .Where(t => t.BaseType.Include(typeof(Rinnegan<,>)));
+                .Where(t => t.BaseType.Include(typeof(Rinnegan<,>)))
+                .Select(t => new ServiceDescriptor(t, t, t.GetCustomAttribute<ScopeAttribute>()?.ServiceLifetime ?? ServiceLifetime.Transient));
 
-            foreach (var type in types)
-                services.TryAddTransient(type);
+
+            foreach (var serviceDescriptor in serviceDescriptors)
+                services.TryAdd(serviceDescriptor);
+            //services.TryAddTransient(type);
 
             return services;
         }
