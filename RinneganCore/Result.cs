@@ -9,8 +9,10 @@ namespace RinneganCore
     public class Result
     {
         #region Properties
+        internal int _statusCode => (int)_status;
         protected HttpStatusCode _status;
         public Dictionary<string, object?> errors { get; set; }
+        public bool IsSuccess => (_statusCode >= 200 && _statusCode < 300);
         #endregion
 
         #region Constractors
@@ -61,30 +63,18 @@ namespace RinneganCore
         public Result(HttpStatusCode status, Dictionary<string, object?> errors) : base(status, errors)
         {
         }
-
-        //public ObjectResult AsObjectResult()
-        //{
-        //    return new ObjectResult(this)
-        //    {
-        //        StatusCode = (int)this._status,
-        //    };
-        //}
-
     }
 
+    internal class ResultDto<T>
+    {
+        public ResultDto(Result<T> result)
+        {
+            this.data = result.data;
+            this.errors = result.errors;
+        }
 
+        public T? data { get; set; }
+        public Dictionary<string, object?>? errors { get; set; }
+    }
 
-    //public enum ResultStatus
-    //{
-    //    OK = 200,                       //  success
-    //    Redirect = 302,                 //  domain is not default
-    //    Unauthorized = 401,             //  not authenticated
-    //    Forbidden = 403,                //  not authorized
-    //    NotFound = 404,                 //  domain not found
-    //    BadRequest = 400,               //  input error
-    //    UnprocessableContent = 422,     //  unable to execute by condition
-    //    UnSuccess = 500,                //  internal server error
-    //    NotImplemented = 501,           //  not implemented
-    //    MissingPayload = 512,           //  missing payload
-    //}
 }

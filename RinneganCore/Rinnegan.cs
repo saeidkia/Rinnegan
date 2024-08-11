@@ -44,7 +44,7 @@ namespace RinneganCore
             // cache found data
             // result is null
             // result is not OK
-            if (this.cache == null || this.cache.found || result == null || result.GetStatus() != HttpStatusCode.OK)
+            if (this.cache == null || this.cache.found || result == null || !result.IsSuccess)
                 return;
 
             this.cache.MemoryCache.Set(this.cache.Key, result, DateTimeOffset.Now.Add(this.cache.TimeSpan));
@@ -102,6 +102,14 @@ namespace RinneganCore
         {
             return null;
         }
+        protected virtual Result<TResponse>? OnSuccess(Result<TResponse>? result)
+        {
+            return result;
+        }
+        protected virtual Result<TResponse>? OnError(Result<TResponse>? result)
+        {
+            return result;
+        }
         protected virtual Result<TResponse>? OnExecuted(Result<TResponse>? result)
         {
             return result;
@@ -122,13 +130,27 @@ namespace RinneganCore
             {
                 result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
                 SaveCache(result);
+
+                // result is null
+                result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+
+                // success
+                if (result.IsSuccess)
+                    result = OnSuccess(result);
+
+                // error
+                else
+                    result = OnError(result);
+
+                // finally
                 result = OnExecuted(result);
             }
+            // unhandled exception
             catch (Exception ex)
             {
                 result = UnhandledException(ex);
             }
-            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            return result;
         }
         public async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
         {
@@ -140,30 +162,44 @@ namespace RinneganCore
             {
                 result = await Task.Run(async () => (Validation() ?? OnExecuting() ?? FromCache() ?? await ExecuteAsync() ?? Execute()));
                 SaveCache(result);
+
+                // result is null
+                result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+
+                // success
+                if (result.IsSuccess)
+                    result = OnSuccess(result);
+
+                // error
+                else
+                    result = OnError(result);
+
+                // finally
                 result = OnExecuted(result);
             }
+            // unhandled exception
             catch (Exception ex)
             {
                 result = UnhandledException(ex);
             }
-            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            return result;
         }
 
 
         protected virtual IActionResult ActionResult(Controller? controller, Result<TResponse> result)
         {
-            return new ObjectResult(result)
+            return new ObjectResult(new ResultDto<TResponse>(result))
             {
-                StatusCode = (int)result.GetStatus(),
+                StatusCode = result._statusCode,
             };
         }
-        public IActionResult AsActionResult(TRequest? request, Controller? controller = null)
+        public IActionResult RunAsActionResult(TRequest? request, Controller? controller = null)
         {
             var result = this.RunExecute(request);
 
             return ActionResult(controller, result);
         }
-        public async Task<IActionResult> AsActionResultAsync(TRequest? request, Controller? controller = null)
+        public async Task<IActionResult> RunAsActionResultAsync(TRequest? request, Controller? controller = null)
         {
             var result = await this.RunExecuteAsync(request);
 

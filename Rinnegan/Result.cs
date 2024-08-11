@@ -15,6 +15,7 @@ namespace Rinnegan
         public int status => (int)_status;
         public string message => _status.ToString();
         public Dictionary<string, object> errors { get; set; }
+        public bool IsSuccess => (status >= 200 && status < 300);
         #endregion
 
         #region Constractors
@@ -65,25 +66,25 @@ namespace Rinnegan
         {
         }
 
-        public RinneganJsonResult AsJsonResult()
+        public RinneganJsonResult AsActionResult()
         {
-            return new RinneganJsonResult(this);
+            return new RinneganJsonResult(new ResultDto<T>(this));
         }
     }
 
+    internal class ResultDto<T>
+    {
+        internal ResultDto(Result<T> result)
+        {
+            this.status = result.status;
+            this.message = result.message;
+            this.errors = result.errors;
+            this.data = result.data;
+        }
 
-    //public enum ResultStatus
-    //{
-    //    OK = 200,                       //  success
-    //    Redirect = 302,                 //  domain is not default
-    //    Unauthorized = 401,             //  not authenticated
-    //    Forbidden = 403,                //  not authorized
-    //    NotFound = 404,                 //  domain not found
-    //    BadRequest = 400,               //  input error
-    //    UnprocessableContent = 422,     //  unable to execute by condition
-    //    UnSuccess = 500,                //  internal server error
-    //    NotImplemented = 501,           //  not implemented
-    //    BadGateway = 502,               //  Bad Gateway
-    //    MissingPayload = 512,           //  missing payload
-    //}
+        public T data { get; set; }
+        public int status { get; set; }
+        public string message { get; set; }
+        public Dictionary<string, object> errors { get; set; }
+    }
 }

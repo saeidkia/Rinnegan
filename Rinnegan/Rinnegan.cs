@@ -100,6 +100,14 @@ namespace Rinnegan
         {
             return new Result<TResponse>(HttpStatusCode.NotImplemented);
         }
+        protected virtual Result<TResponse> OnSuccess(Result<TResponse> result)
+        {
+            return result;
+        }
+        protected virtual Result<TResponse> OnError(Result<TResponse> result)
+        {
+            return result;
+        }
         protected virtual Result<TResponse> OnExecuted(Result<TResponse> result)
         {
             return result;
@@ -120,14 +128,27 @@ namespace Rinnegan
             {
                 result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute();
                 SaveCache(result);
+
+                // result is null
+                result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+
+                // success
+                if (result.IsSuccess)
+                    result = OnSuccess(result);
+
+                // error
+                else
+                    result = OnError(result);
+
+                // finally
                 result = OnExecuted(result);
             }
+            // unhandled exception
             catch (Exception ex)
             {
                 result = UnhandledException(ex);
             }
-
-            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            return result;
         }
         public async Task<Result<TResponse>> RunExecuteAsync(TRequest request)
         {
@@ -139,14 +160,27 @@ namespace Rinnegan
             {
                 result = await Task.Run(() => (Validation() ?? OnExecuting() ?? FromCache() ?? Execute()));
                 SaveCache(result);
+
+                // result is null
+                result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+
+                // success
+                if (result.IsSuccess)
+                    result = OnSuccess(result);
+
+                // error
+                else
+                    result = OnError(result);
+
+                // finally
                 result = OnExecuted(result);
             }
+            // unhandled exception
             catch (Exception ex)
             {
                 result = UnhandledException(ex);
             }
-
-            return result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            return result;
         }
     }
 }
