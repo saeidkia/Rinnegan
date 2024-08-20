@@ -63,6 +63,10 @@ namespace RinneganCore
         public Result(HttpStatusCode status, Dictionary<string, object?> errors) : base(status, errors)
         {
         }
+        public Result(HttpStatusCode status, string json) : base(status)
+        {
+            Newtonsoft.Json.JsonConvert.PopulateObject(json, this);
+        }
     }
 
     internal class ResultDto<T>

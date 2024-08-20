@@ -98,7 +98,11 @@ namespace Rinnegan
         }
         protected virtual Result<TResponse> Execute()
         {
-            return new Result<TResponse>(HttpStatusCode.NotImplemented);
+            return null;
+        }
+        protected virtual async Task<Result<TResponse>> ExecuteAsync()
+        {
+            return null;
         }
         protected virtual Result<TResponse> OnSuccess(Result<TResponse> result)
         {
@@ -126,7 +130,7 @@ namespace Rinnegan
 
             try
             {
-                result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute();
+                result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
                 SaveCache(result);
 
                 // result is null
@@ -158,7 +162,7 @@ namespace Rinnegan
 
             try
             {
-                result = await Task.Run(() => (Validation() ?? OnExecuting() ?? FromCache() ?? Execute()));
+                result = await Task.Run(async () => (Validation() ?? OnExecuting() ?? FromCache() ?? await ExecuteAsync() ?? Execute()));
                 SaveCache(result);
 
                 // result is null
