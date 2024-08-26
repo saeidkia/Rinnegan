@@ -12,21 +12,21 @@ namespace RinneganCore
         private Cache? cache;
 
 
-        protected Result<TResponse> OK(TResponse data)
-        {
-            return new Result<TResponse>(HttpStatusCode.OK)
-            {
-                data = data,
-            };
-        }
-        protected Result<TResponse> Error(HttpStatusCode status, string key, object value)
-        {
-            return new Result<TResponse>(status, key, value);
-        }
-        protected Result<TResponse> Error(Result result)
-        {
-            return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
-        }
+        //protected Result<TResponse> OK(TResponse data)
+        //{
+        //    return new Result<TResponse>(HttpStatusCode.OK)
+        //    {
+        //        data = data,
+        //    };
+        //}
+        //protected Result<TResponse> Error(HttpStatusCode status, string key, object value)
+        //{
+        //    return new Result<TResponse>(status, key, value);
+        //}
+        //protected Result<TResponse> Error(Result result)
+        //{
+        //    return new Result<TResponse>(result.GetStatus()) { errors = result.errors };
+        //}
 
         private Result<TResponse>? FromCache()
         {
