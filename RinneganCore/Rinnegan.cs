@@ -30,6 +30,8 @@ namespace RinneganCore
 
         private Result<TResponse>? FromCache()
         {
+            this.cache = EnableCaching();
+
             if (this.cache == null)
                 return null;
 
@@ -124,7 +126,6 @@ namespace RinneganCore
         {
             this.request = request;
             Result<TResponse>? result;
-            this.cache = EnableCaching();
 
             try
             {
@@ -156,7 +157,6 @@ namespace RinneganCore
         {
             this.request = request;
             Result<TResponse>? result;
-            this.cache = EnableCaching();
 
             try
             {
