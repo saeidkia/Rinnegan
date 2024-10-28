@@ -92,7 +92,7 @@ namespace RinneganCore
 
             return null;
         }
-        protected virtual Result<TResponse>? OnExecuting()
+        protected virtual Result<TResponse>? Executing()
         {
             return null;
         }
@@ -104,15 +104,19 @@ namespace RinneganCore
         {
             return null;
         }
-        protected virtual Result<TResponse>? OnSuccess(Result<TResponse>? result)
+        protected virtual Result<TResponse> Executed(Result<TResponse>? result)
+        {
+            return result!;
+        }
+        protected virtual Result<TResponse> OnSuccess(Result<TResponse> result)
         {
             return result;
         }
-        protected virtual Result<TResponse>? OnError(Result<TResponse>? result)
+        protected virtual Result<TResponse> OnError(Result<TResponse> result)
         {
             return result;
         }
-        protected virtual Result<TResponse>? OnExecuted(Result<TResponse>? result)
+        protected virtual Result<TResponse> Finally(Result<TResponse> result)
         {
             return result;
         }
@@ -129,11 +133,11 @@ namespace RinneganCore
 
             try
             {
-                result = Validation() ?? OnExecuting() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
+                result = Validation() ?? Executing() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
                 SaveCache(result);
 
-                // result is null
-                result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+                // executed & null
+                result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
 
                 // success
                 if (result.IsSuccess)
@@ -144,7 +148,7 @@ namespace RinneganCore
                     result = OnError(result);
 
                 // finally
-                result = OnExecuted(result);
+                result = Finally(result);
             }
             // unhandled exception
             catch (Exception ex)
@@ -160,11 +164,11 @@ namespace RinneganCore
 
             try
             {
-                result = await Task.Run(async () => (Validation() ?? OnExecuting() ?? FromCache() ?? await ExecuteAsync() ?? Execute()));
+                result = await Task.Run(async () => (Validation() ?? Executing() ?? FromCache() ?? await ExecuteAsync() ?? Execute()));
                 SaveCache(result);
 
-                // result is null
-                result = result ?? new Result<TResponse>(HttpStatusCode.NoContent);
+                // executed & null
+                result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
 
                 // success
                 if (result.IsSuccess)
@@ -175,7 +179,7 @@ namespace RinneganCore
                     result = OnError(result);
 
                 // finally
-                result = OnExecuted(result);
+                result = Finally(result);
             }
             // unhandled exception
             catch (Exception ex)
