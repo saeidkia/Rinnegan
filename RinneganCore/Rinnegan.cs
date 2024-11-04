@@ -108,17 +108,14 @@ namespace RinneganCore
         {
             return result!;
         }
-        protected virtual Result<TResponse> OnSuccess(Result<TResponse> result)
+        protected virtual void OnSuccess(Result<TResponse> result)
         {
-            return result;
         }
-        protected virtual Result<TResponse> OnError(Result<TResponse> result)
+        protected virtual void OnError(Result<TResponse> result)
         {
-            return result;
         }
-        protected virtual Result<TResponse> Finally(Result<TResponse> result)
+        protected virtual void Finally(Result<TResponse> result)
         {
-            return result;
         }
         protected virtual Result<TResponse> UnhandledException(Exception ex)
         {
@@ -141,14 +138,14 @@ namespace RinneganCore
 
                 // success
                 if (result.IsSuccess)
-                    result = OnSuccess(result);
+                    OnSuccess(result);
 
                 // error
                 else
-                    result = OnError(result);
+                    OnError(result);
 
                 // finally
-                result = Finally(result);
+                Finally(result);
             }
             // unhandled exception
             catch (Exception ex)
@@ -172,14 +169,14 @@ namespace RinneganCore
 
                 // success
                 if (result.IsSuccess)
-                    result = OnSuccess(result);
+                    OnSuccess(result);
 
                 // error
                 else
-                    result = OnError(result);
+                    OnError(result);
 
                 // finally
-                result = Finally(result);
+                Finally(result);
             }
             // unhandled exception
             catch (Exception ex)
