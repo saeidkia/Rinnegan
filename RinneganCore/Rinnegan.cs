@@ -135,7 +135,15 @@ namespace RinneganCore
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            }
+            // unhandled exception
+            catch (Exception ex)
+            {
+                result = UnhandledException(ex);
+            }
 
+            try
+            {
                 // success
                 if (result.IsSuccess)
                     OnSuccess(result);
@@ -147,11 +155,9 @@ namespace RinneganCore
                 // finally
                 Finally(result);
             }
-            // unhandled exception
-            catch (Exception ex)
-            {
-                result = UnhandledException(ex);
-            }
+            catch
+            { }
+
             return result;
         }
         public async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
@@ -166,7 +172,15 @@ namespace RinneganCore
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
+            }
+            // unhandled exception
+            catch (Exception ex)
+            {
+                result = UnhandledException(ex);
+            }
 
+            try
+            {
                 // success
                 if (result.IsSuccess)
                     OnSuccess(result);
@@ -178,11 +192,9 @@ namespace RinneganCore
                 // finally
                 Finally(result);
             }
-            // unhandled exception
-            catch (Exception ex)
-            {
-                result = UnhandledException(ex);
-            }
+            catch
+            { }
+
             return result;
         }
 
