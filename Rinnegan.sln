@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rinnegan", "Rinnegan\Rinneg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RinneganCore", "RinneganCore\RinneganCore.csproj", "{DAAC03D0-A1A6-4808-8551-E3D493629EF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RinneganCore.Tools", "RinneganCore.Tools\RinneganCore.Tools.csproj", "{347C1A65-6784-4189-9C63-5FBDA2E4EEBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DAAC03D0-A1A6-4808-8551-E3D493629EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAAC03D0-A1A6-4808-8551-E3D493629EF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAAC03D0-A1A6-4808-8551-E3D493629EF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{347C1A65-6784-4189-9C63-5FBDA2E4EEBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347C1A65-6784-4189-9C63-5FBDA2E4EEBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{347C1A65-6784-4189-9C63-5FBDA2E4EEBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347C1A65-6784-4189-9C63-5FBDA2E4EEBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
