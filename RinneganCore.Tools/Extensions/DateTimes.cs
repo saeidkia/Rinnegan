@@ -76,6 +76,33 @@ namespace RinneganCore.Tools.Extensions
 
 
         /// <summary>
+        /// Cast "13:38" time format to TimeOnly object
+        /// </summary>
+        /// <returns>TimeOnle?</returns>
+        public static TimeOnly? ToTimeOnly(this string @this)
+        {
+            if (string.IsNullOrEmpty(@this) || (@this.Length != 5 && @this.Length != 8)) return null;
+            if (@this.Length == 5) @this += ":00";
+            try
+            {
+                string[] parts = @this.Split(':');
+
+                if (parts.Length != 3)
+                {
+                    return null;
+                }
+
+                return new TimeOnly(int.Parse(parts[0]), int.Parse(parts[1]), int.Parse(parts[2]));
+            }
+            catch
+            {
+                return null;
+            }
+
+        }
+
+
+        /// <summary>
         /// Cast "1403/08/23" Jalali date format to DateTime object with parameters for time
         /// </summary>
         /// <param name="hours">value for hour with default value 0</param>
