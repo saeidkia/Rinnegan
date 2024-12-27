@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace RinneganCore.Tools.Extensions
 {
@@ -49,6 +50,26 @@ namespace RinneganCore.Tools.Extensions
             if (string.IsNullOrEmpty(@this)) return @this;
 
             return @this.Trim().ToEnglishNumber();
+        }
+
+
+        /// <summary>
+        /// return content type of given file path
+        /// </summary>
+        /// <param name="this">file path</param>
+        /// <returns>content type</returns>
+        public static string ContentType(this string @this)
+        {
+            const string DefaultContentType = "application/octet-stream";
+
+            var provider = new FileExtensionContentTypeProvider();
+
+            if (!provider.TryGetContentType(@this, out string contentType))
+            {
+                contentType = DefaultContentType;
+            }
+
+            return contentType;
         }
     }
 }
