@@ -189,13 +189,13 @@ namespace RinneganCore
                 StatusCode = result._statusCode,
             };
         }
-        public IActionResult RunAsActionResult(TRequest? request, Controller? controller = null)
+        public virtual IActionResult RunAsActionResult(TRequest? request, Controller? controller = null)
         {
             var result = this.RunExecute(request);
 
             return ActionResult(controller, result);
         }
-        public async Task<IActionResult> RunAsActionResultAsync(TRequest? request, Controller? controller = null)
+        public virtual async Task<IActionResult> RunAsActionResultAsync(TRequest? request, Controller? controller = null)
         {
             var result = await this.RunExecuteAsync(request);
 
