@@ -13,6 +13,9 @@ namespace RinneganCore
 
         private Result<TResponse>? FromCache()
         {
+            return null;
+
+
             this.cache = EnableCaching();
 
             if (this.cache == null)
@@ -25,6 +28,8 @@ namespace RinneganCore
         }
         private void SaveCache(Result<TResponse>? result)
         {
+            return;
+
             // cache not set
             // cache found data
             // result is null
