@@ -11,25 +11,24 @@ namespace RinneganCore
         protected TRequest? request;
         private Cache? cache;
 
-        private Result<TResponse>? FromCache()
+        protected virtual Cache? EnableCaching()
         {
             return null;
-
-
+        }
+        protected virtual Result<TResponse>? FromCache()
+        {
             this.cache = EnableCaching();
 
             if (this.cache == null)
                 return null;
 
             Result<TResponse>? result;
-            this.cache.found = this.cache.MemoryCache.TryGetValue(this.cache.Key, out result);
+            this.cache.found = this.cache.TryGetValue(out result);
 
             return result;
         }
-        private void SaveCache(Result<TResponse>? result)
+        protected virtual void SaveCache(Result<TResponse>? result)
         {
-            return;
-
             // cache not set
             // cache found data
             // result is null
@@ -37,11 +36,7 @@ namespace RinneganCore
             if (this.cache == null || this.cache.found || result == null || !result.IsSuccess)
                 return;
 
-            this.cache.MemoryCache.Set(this.cache.Key, result, DateTimeOffset.Now.Add(this.cache.TimeSpan));
-        }
-        protected virtual Cache? EnableCaching()
-        {
-            return null;
+            this.cache.Set(result);
         }
 
         protected virtual Result<TResponse>? Validation()
@@ -216,21 +211,25 @@ namespace RinneganCore
                 data = data,
             };
         }
-        protected virtual Result<TResponse> NotFound(string value, string key = "")
-        {
-            return new Result<TResponse>(System.Net.HttpStatusCode.NotFound, key, value);
-        }
         protected virtual Result<TResponse> BadRequest(string value, string key = "")
         {
             return new Result<TResponse>(System.Net.HttpStatusCode.BadRequest, key, value);
         }
-        protected virtual Result<TResponse> BadGateway(string value, string key = "")
-        {
-            return new Result<TResponse>(System.Net.HttpStatusCode.BadGateway, key, value);
-        }
         protected virtual Result<TResponse> Forbidden(string value, string key = "")
         {
             return new Result<TResponse>(System.Net.HttpStatusCode.Forbidden, key, value);
+        }
+        protected virtual Result<TResponse> NotFound(string value, string key = "")
+        {
+            return new Result<TResponse>(System.Net.HttpStatusCode.NotFound, key, value);
+        }
+        protected virtual Result<TResponse> UnprocessableContent(string value, string key = "")
+        {
+            return new Result<TResponse>(HttpStatusCode.UnprocessableContent, key, value);
+        }
+        protected virtual Result<TResponse> BadGateway(string value, string key = "")
+        {
+            return new Result<TResponse>(System.Net.HttpStatusCode.BadGateway, key, value);
         }
         protected virtual Result<TResponse> Error(Result result)
         {
