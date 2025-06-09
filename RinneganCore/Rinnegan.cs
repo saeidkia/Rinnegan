@@ -106,7 +106,7 @@ namespace RinneganCore
         }
 
 
-        public Result<TResponse> RunExecute(TRequest? request)
+        public virtual Result<TResponse> RunExecute(TRequest? request)
         {
             this.request = request;
             Result<TResponse>? result;
@@ -143,7 +143,7 @@ namespace RinneganCore
 
             return result;
         }
-        public async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
+        public virtual async Task<Result<TResponse>> RunExecuteAsync(TRequest? request)
         {
             this.request = request;
             Result<TResponse>? result;
