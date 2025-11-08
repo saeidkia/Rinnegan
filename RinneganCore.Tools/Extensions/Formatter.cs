@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,50 @@ namespace RinneganCore.Tools.Extensions
         public static T ToEnum<T>(this string @this)
         {
             return (T)Enum.Parse(typeof(T), @this, true);
+        }
+
+
+        /// <summary>
+        /// Cast Dictionary to given class type
+        /// </summary>
+        /// <typeparam name="TResult">response type</typeparam>
+        /// <param name="this">Dictionary<string, object></param>
+        /// <returns>TResult type object</returns>
+        public static TResult? To<TResult>(this Dictionary<string, object> @this)
+            where TResult : class
+        {
+            return @this.ToJson()
+               .FromJson<TResult>();
+        }
+
+
+        /// <summary>
+        /// Cast Dictianry to given class type
+        /// </summary>
+        /// <typeparam name="TResult">response type</typeparam>
+        /// <typeparam name="TKey">dictionary key type</typeparam>
+        /// <typeparam name="TValue">dictionary value type</typeparam>
+        /// <param name="this">Dictionary<TKey,TValue></param>
+        /// <returns>TResult type object</returns>
+        public static TResult? To<TResult, TKey, TValue>(this Dictionary<TKey, TValue> @this)
+            where TResult : class
+        {
+            return @this.ToJson()
+               .FromJson<TResult>();
+        }
+
+
+        /// <summary>
+        /// Cast Dictionary to given class type
+        /// </summary>
+        /// <typeparam name="TResult">response type</typeparam>
+        /// <param name="this"></param>
+        /// <returns>TResult type object</returns>
+        public static TResult? To<TResult>(this IDictionary @this)
+            where TResult : class
+        {
+            return @this.ToJson()
+               .FromJson<TResult>();
         }
     }
 }
