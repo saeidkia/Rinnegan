@@ -27,6 +27,18 @@ namespace RinneganCore
 
             return result;
         }
+        protected virtual async Task<Result<TResponse>?> FromCacheAsync()
+        {
+            this.cache = EnableCaching();
+
+            if (this.cache == null)
+                return null;
+
+            Result<TResponse>? result = await this.cache.GetValueAsync<Result<TResponse>>();
+            this.cache.found = result != null;
+
+            return result;
+        }
         protected virtual void SaveCache(Result<TResponse>? result)
         {
             // cache not set
@@ -37,6 +49,17 @@ namespace RinneganCore
                 return;
 
             this.cache.Set(result);
+        }
+        protected virtual async Task SaveCacheAsync(Result<TResponse>? result)
+        {
+            // cache not set
+            // cache found data
+            // result is null
+            // result is not OK
+            if (this.cache == null || this.cache.found || result == null || !result.IsSuccess)
+                return;
+
+            await this.cache.SetAsync(result);
         }
 
         protected virtual Result<TResponse>? Validation()
@@ -150,8 +173,8 @@ namespace RinneganCore
 
             try
             {
-                result = await Task.Run(async () => (Validation() ?? Executing() ?? FromCache() ?? await ExecuteAsync() ?? Execute()));
-                SaveCache(result);
+                result = await Task.Run(async () => (Validation() ?? Executing() ?? await FromCacheAsync() ?? await ExecuteAsync() ?? Execute()));
+                await SaveCacheAsync(result);
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace RinneganCore
 {
@@ -13,6 +14,7 @@ namespace RinneganCore
         protected HttpStatusCode _status;
         public Dictionary<string, object?> errors { get; set; }
         public bool IsSuccess => (_statusCode >= 200 && _statusCode < 300);
+        public HttpStatusCode status => _status;
         #endregion
 
         #region Constractors
@@ -54,6 +56,7 @@ namespace RinneganCore
     {
         public T? data { get; set; }
 
+        [JsonConstructorAttribute]
         public Result(HttpStatusCode status) : base(status)
         {
         }

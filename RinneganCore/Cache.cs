@@ -67,6 +67,24 @@ namespace RinneganCore
             return false;
         }
 
+        internal async Task<T?> GetValueAsync<T>()
+        {
+            switch (this.Type)
+            {
+                case CacheType.MemoryCache:
+                    return (T?)this.MemoryCache!.Get(this.Key);
+
+                case CacheType.DistributedCache:
+                    var data = await this.DistributedCache!.GetAsync(this.Key.ToString()!);
+                    if (data == null)
+                        break;
+                    using (var stream = new MemoryStream(data))
+                        return await JsonSerializer.DeserializeAsync<T>(stream);
+            }
+            return default(T);
+        }
+
+
         internal void Set<T>(T value)
         {
             if (value == null) return;
@@ -92,5 +110,29 @@ namespace RinneganCore
             }
         }
 
+        internal async Task SetAsync<T>(T value)
+        {
+            if (value == null) return;
+
+            switch (this.Type)
+            {
+                case CacheType.MemoryCache:
+                    MemoryCacheEntryOptions memoryOptions = this.Sliding
+                        ? new MemoryCacheEntryOptions { SlidingExpiration = this.TimeSpan }
+                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = this.TimeSpan };
+                    this.MemoryCache!.Set(this.Key, value, memoryOptions);
+                    return;
+
+
+                case CacheType.DistributedCache:
+                    byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
+                    DistributedCacheEntryOptions distributedOptions = this.Sliding
+                        ? new DistributedCacheEntryOptions { SlidingExpiration = this.TimeSpan }
+                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = this.TimeSpan };
+
+                    await this.DistributedCache!.SetAsync(this.Key.ToString()!, data, distributedOptions);
+                    return;
+            }
+        }
     }
 }
