@@ -39,7 +39,7 @@ namespace RinneganCore
 
             return result;
         }
-        protected virtual void SaveCache(Result<TResponse>? result, TimeSpan expire)
+        protected virtual void SaveCache(Result<TResponse>? result, Cache cache)
         {
             // cache not set
             // cache found data
@@ -48,9 +48,9 @@ namespace RinneganCore
             if (this.cache == null || this.cache.found || result == null || !result.IsSuccess)
                 return;
 
-            this.cache.Set(result, expire);
+            this.cache.Set(result);
         }
-        protected virtual async Task SaveCacheAsync(Result<TResponse>? result, TimeSpan expire)
+        protected virtual async Task SaveCacheAsync(Result<TResponse>? result,Cache cache)
         {
             // cache not set
             // cache found data
@@ -59,7 +59,7 @@ namespace RinneganCore
             if (this.cache == null || this.cache.found || result == null || !result.IsSuccess)
                 return;
 
-            await this.cache.SetAsync(result, expire);
+            await this.cache.SetAsync(result);
         }
 
         protected virtual Result<TResponse>? Validation()
@@ -137,7 +137,7 @@ namespace RinneganCore
             try
             {
                 result = Validation() ?? Executing() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
-                SaveCache(result, this.cache?.TimeSpan ?? TimeSpan.Zero);
+                SaveCache(result, this.cache);
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
@@ -174,7 +174,7 @@ namespace RinneganCore
             try
             {
                 result = await Task.Run(async () => (Validation() ?? Executing() ?? await FromCacheAsync() ?? await ExecuteAsync() ?? Execute()));
-                await SaveCacheAsync(result, this.cache?.TimeSpan ?? TimeSpan.Zero);
+                await SaveCacheAsync(result, this.cache);
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);

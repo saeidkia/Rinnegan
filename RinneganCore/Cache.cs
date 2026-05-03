@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static RinneganCore.Cache;
 
 namespace RinneganCore
 {
@@ -15,49 +16,56 @@ namespace RinneganCore
 
         internal IMemoryCache? MemoryCache { get; set; }
         internal IDistributedCache? DistributedCache { get; set; }
-        internal TimeSpan TimeSpan { get; set; }
+        internal TimeSpan Duration { get; set; }
         internal object Key { get; set; }
         internal bool Sliding { get; set; }
-        private CacheType? Type { get; set; } = CacheType.None;
+        internal CacheType? Type { get; set; } = CacheType.None;
 
-        public Cache(IMemoryCache memoryCache, object key, TimeSpan timeSpan, bool sliding = false)
+        public Cache(IMemoryCache memoryCache, object key, TimeSpan duration, bool sliding = false)
         {
             this.MemoryCache = memoryCache;
             this.DistributedCache = null;
             this.Key = key;
-            this.TimeSpan = timeSpan;
+            this.Duration = duration;
             Sliding = sliding;
             Type = CacheType.MemoryCache;
         }
-        public Cache(IDistributedCache distributedCache, string key, TimeSpan timeSpan, bool sliding = false)
+        public Cache(IDistributedCache distributedCache, string key, TimeSpan duration, bool sliding = false)
         {
             this.MemoryCache = null;
             this.DistributedCache = distributedCache;
             this.Key = key;
-            this.TimeSpan = timeSpan;
+            this.Duration = duration;
             Sliding = sliding;
             Type = CacheType.DistributedCache;
         }
 
-
-        public enum CacheType
+        public Cache UpdateDuration(TimeSpan duration)
         {
-            None,
-            MemoryCache,
-            DistributedCache,
+            this.Duration = duration;
+            return this;
         }
+    }
 
+    public enum CacheType
+    {
+        None,
+        MemoryCache,
+        DistributedCache,
+    }
 
-        internal bool TryGetValue<T>(out T? result)
+    internal static class CacheHandler
+    {
+        internal static bool TryGetValue<T>(this Cache cache, out T? result)
         {
-            switch (this.Type)
+            switch (cache.Type)
             {
                 case CacheType.MemoryCache:
-                    return this.MemoryCache!.TryGetValue(this.Key, out result);
+                    return cache.MemoryCache!.TryGetValue(cache.Key, out result);
 
 
                 case CacheType.DistributedCache:
-                    var data = this.DistributedCache!.Get(this.Key.ToString()!);
+                    var data = cache.DistributedCache!.Get(cache.Key.ToString()!);
                     if (data == null)
                         break;
                     result = JsonSerializer.Deserialize<T>(data);
@@ -67,15 +75,15 @@ namespace RinneganCore
             return false;
         }
 
-        internal async Task<T?> GetValueAsync<T>()
+        internal static async Task<T?> GetValueAsync<T>(this Cache cache)
         {
-            switch (this.Type)
+            switch (cache.Type)
             {
                 case CacheType.MemoryCache:
-                    return (T?)this.MemoryCache!.Get(this.Key);
+                    return (T?)cache.MemoryCache!.Get(cache.Key);
 
                 case CacheType.DistributedCache:
-                    var data = await this.DistributedCache!.GetAsync(this.Key.ToString()!);
+                    var data = await cache.DistributedCache!.GetAsync(cache.Key.ToString()!);
                     if (data == null)
                         break;
                     using (var stream = new MemoryStream(data))
@@ -85,52 +93,52 @@ namespace RinneganCore
         }
 
 
-        internal void Set<T>(T value, TimeSpan expire)
+        internal static void Set<T>(this Cache cache, T value)
         {
             if (value == null) return;
 
-            switch (this.Type)
+            switch (cache.Type)
             {
                 case CacheType.MemoryCache:
-                    MemoryCacheEntryOptions memoryOptions = this.Sliding
-                        ? new MemoryCacheEntryOptions { SlidingExpiration = expire }
-                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
-                    this.MemoryCache!.Set(this.Key, value, memoryOptions);
+                    MemoryCacheEntryOptions memoryOptions = cache.Sliding
+                        ? new MemoryCacheEntryOptions { SlidingExpiration = cache.Duration }
+                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = cache.Duration };
+                    cache.MemoryCache!.Set(cache.Key, value, memoryOptions);
                     return;
 
 
                 case CacheType.DistributedCache:
                     byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
-                    DistributedCacheEntryOptions distributedOptions = this.Sliding
-                        ? new DistributedCacheEntryOptions { SlidingExpiration = expire }
-                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
+                    DistributedCacheEntryOptions distributedOptions = cache.Sliding
+                        ? new DistributedCacheEntryOptions { SlidingExpiration = cache.Duration }
+                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = cache.Duration };
 
-                    this.DistributedCache!.Set(this.Key.ToString()!, data, distributedOptions);
+                    cache.DistributedCache!.Set(cache.Key.ToString()!, data, distributedOptions);
                     return;
             }
         }
 
-        internal async Task SetAsync<T>(T value, TimeSpan expire)
+        internal static async Task SetAsync<T>(this Cache cache, T value)
         {
             if (value == null) return;
 
-            switch (this.Type)
+            switch (cache.Type)
             {
                 case CacheType.MemoryCache:
-                    MemoryCacheEntryOptions memoryOptions = this.Sliding
-                        ? new MemoryCacheEntryOptions { SlidingExpiration = expire }
-                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
-                    this.MemoryCache!.Set(this.Key, value, memoryOptions);
+                    MemoryCacheEntryOptions memoryOptions = cache.Sliding
+                        ? new MemoryCacheEntryOptions { SlidingExpiration = cache.Duration }
+                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = cache.Duration };
+                    cache.MemoryCache!.Set(cache.Key, value, memoryOptions);
                     return;
 
 
                 case CacheType.DistributedCache:
                     byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
-                    DistributedCacheEntryOptions distributedOptions = this.Sliding
-                        ? new DistributedCacheEntryOptions { SlidingExpiration = expire }
-                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
+                    DistributedCacheEntryOptions distributedOptions = cache.Sliding
+                        ? new DistributedCacheEntryOptions { SlidingExpiration = cache.Duration }
+                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = cache.Duration };
 
-                    await this.DistributedCache!.SetAsync(this.Key.ToString()!, data, distributedOptions);
+                    await cache.DistributedCache!.SetAsync(cache.Key.ToString()!, data, distributedOptions);
                     return;
             }
         }
