@@ -85,7 +85,7 @@ namespace RinneganCore
         }
 
 
-        internal void Set<T>(T value)
+        internal void Set<T>(T value, TimeSpan expire)
         {
             if (value == null) return;
 
@@ -93,8 +93,8 @@ namespace RinneganCore
             {
                 case CacheType.MemoryCache:
                     MemoryCacheEntryOptions memoryOptions = this.Sliding
-                        ? new MemoryCacheEntryOptions { SlidingExpiration = this.TimeSpan }
-                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = this.TimeSpan };
+                        ? new MemoryCacheEntryOptions { SlidingExpiration = expire }
+                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
                     this.MemoryCache!.Set(this.Key, value, memoryOptions);
                     return;
 
@@ -102,15 +102,15 @@ namespace RinneganCore
                 case CacheType.DistributedCache:
                     byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
                     DistributedCacheEntryOptions distributedOptions = this.Sliding
-                        ? new DistributedCacheEntryOptions { SlidingExpiration = this.TimeSpan }
-                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = this.TimeSpan };
+                        ? new DistributedCacheEntryOptions { SlidingExpiration = expire }
+                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
 
                     this.DistributedCache!.Set(this.Key.ToString()!, data, distributedOptions);
                     return;
             }
         }
 
-        internal async Task SetAsync<T>(T value)
+        internal async Task SetAsync<T>(T value, TimeSpan expire)
         {
             if (value == null) return;
 
@@ -118,8 +118,8 @@ namespace RinneganCore
             {
                 case CacheType.MemoryCache:
                     MemoryCacheEntryOptions memoryOptions = this.Sliding
-                        ? new MemoryCacheEntryOptions { SlidingExpiration = this.TimeSpan }
-                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = this.TimeSpan };
+                        ? new MemoryCacheEntryOptions { SlidingExpiration = expire }
+                        : new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
                     this.MemoryCache!.Set(this.Key, value, memoryOptions);
                     return;
 
@@ -127,8 +127,8 @@ namespace RinneganCore
                 case CacheType.DistributedCache:
                     byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
                     DistributedCacheEntryOptions distributedOptions = this.Sliding
-                        ? new DistributedCacheEntryOptions { SlidingExpiration = this.TimeSpan }
-                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = this.TimeSpan };
+                        ? new DistributedCacheEntryOptions { SlidingExpiration = expire }
+                        : new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expire };
 
                     await this.DistributedCache!.SetAsync(this.Key.ToString()!, data, distributedOptions);
                     return;
