@@ -36,9 +36,26 @@ namespace RinneganCore.Tools.Extensions
         /// </summary>
         /// <typeparam name="T">Enum type</typeparam>
         /// <returns>Enum format object</returns>
-        public static T ToEnum<T>(this string @this)
+        public static T ToEnum<T>(this string @this) where T : struct, Enum
         {
             return (T)Enum.Parse(typeof(T), @this, true);
+        }
+
+
+        /// <summary>
+        /// Cast string to given Enum format, returns null if string cannot be cast
+        /// </summary>
+        /// <typeparam name="T">Enum type</typeparam>
+        /// <returns>Enum format object or null if cast fails</returns>
+        public static T? TryToEnum<T>(this string @this) where T : struct, Enum
+        {
+            if (string.IsNullOrWhiteSpace(@this))
+                return null;
+
+            if (Enum.TryParse<T>(@this, true, out T result))
+                return result;
+
+            return null;
         }
 
 
