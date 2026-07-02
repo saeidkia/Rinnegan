@@ -4,19 +4,30 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.3.11</Version>
+    <Version>1.3.13</Version>
     <Authors>Kia.Saeid</Authors>
     <Company>KiaIT.ir</Company>
-    <Description>this is RINNEGAN</Description>
+    <Description>Lightweight ASP.NET Core application-service framework for vertical-slice use cases with Result&lt;T&gt; responses and thin controller integration.</Description>
+    <PackageProjectUrl>https://github.com/saeidkia/Rinnegan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/saeidkia/Rinnegan</RepositoryUrl>
-    <PackageTags>Rinnegan</PackageTags>
+    <PackageTags>Rinnegan;RinneganCore;aspnetcore;application-service;vertical-slice</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Removed unnecessary Task.Run from RunExecuteAsync. See CHANGELOG.md.</PackageReleaseNotes>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

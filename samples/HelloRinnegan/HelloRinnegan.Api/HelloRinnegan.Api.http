@@ -1,0 +1,6 @@
+@HelloRinnegan.Api_HostAddress = http://localhost:5033
+
+GET {{HelloRinnegan.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

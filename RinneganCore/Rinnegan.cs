@@ -161,8 +161,10 @@ namespace RinneganCore
                 // finally
                 Finally(result);
             }
-            catch
-            { }
+            catch(Exception ex)
+            {
+                UnhandledException(ex);
+            }
 
             return result;
         }
@@ -173,7 +175,7 @@ namespace RinneganCore
 
             try
             {
-                result = await Task.Run(async () => (Validation() ?? Executing() ?? await FromCacheAsync() ?? await ExecuteAsync() ?? Execute()));
+                result = Validation() ?? Executing() ?? await FromCacheAsync() ?? await ExecuteAsync() ?? Execute();
                 await SaveCacheAsync(result, this.cache);
 
                 // executed & null
@@ -198,8 +200,10 @@ namespace RinneganCore
                 // finally
                 Finally(result);
             }
-            catch
-            { }
+            catch(Exception ex)
+            { 
+                UnhandledException(ex);
+            }
 
             return result;
         }

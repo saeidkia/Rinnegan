@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HelloRinnegan.Api/HelloRinnegan.Api.csproj" />
+  <Project Path="HelloRinnegan.Services/HelloRinnegan.Services.csproj" />
+</Solution>

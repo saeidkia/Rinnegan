@@ -7,11 +7,22 @@
     <Version>1.0.6</Version>
     <Authors>Kia.Saeid</Authors>
     <Company>KiaIT.ir</Company>
-    <Description>Rinnegan tool box</Description>
+    <Description>Companion utilities for RinneganCore: pagination, Jalali date helpers, formatting, and Persian string utilities.</Description>
+    <PackageProjectUrl>https://github.com/saeidkia/Rinnegan</PackageProjectUrl>
     <RepositoryUrl>https://github.com/saeidkia/Rinnegan</RepositoryUrl>
-    <PackageTags>Rinnegan;Tools;Core;RinneganCore</PackageTags>
+    <PackageTags>Rinnegan;RinneganCore;Tools;Pagination;Jalali</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Companion package for RinneganCore. See CHANGELOG.md.</PackageReleaseNotes>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
