@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.13] - 2026-08-22
+
+### Added
+- Async lifecycle hooks: `ExecutingAsync`, `ExecutedAsync`, `OnSuccessAsync`, `OnErrorAsync`, `FinallyAsync`.
+
+### Changed
+- `Execute` / `ExecuteAsync` now return `Result<TResponse>?`. `null` still means continue / not implemented.
+- `RunExecute` keeps two-way fallback onto async result-producing hooks via `GetAwaiter().GetResult()` so existing `ExecuteAsync`-only services still answer the sync runner.
+- `RunExecuteAsync` prefers async hooks, then falls back to the sync flavor.
+- Side-effect `*Async` defaults call the matching sync hook, so overriding only `OnSuccess` / `OnError` / `Finally` still runs on both runners.
+- `ExecutedAsync` defaults to `Executed`.
+
+### Docs
+- Pipeline, hook fallback, and AI coding rules updated in `docs/concepts.md` and `RINNEGAN_AI_CONTEXT.md`.
+
 ## [1.3.12] - 2026-07-02
 
 ### Changed

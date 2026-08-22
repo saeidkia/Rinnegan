@@ -11,30 +11,82 @@ A service:
 
 ## Pipeline
 
-Execution order:
+There are two runners:
+
+- `RunExecute` / `RunAsActionResult` — sync
+- `RunExecuteAsync` / `RunAsActionResultAsync` — async (preferred in ASP.NET Core)
+
+Both follow the same stages:
+
 1. `Validation()`
-2. `Executing()`
-3. `FromCache()` / `FromCacheAsync()`
-4. `Execute()` / `ExecuteAsync()`
-5. `SaveCache()` / `SaveCacheAsync()`
-6. `Executed(result)`
-7. `OnSuccess(result)` or `OnError(result)`
-8. `Finally(result)`
+2. `Executing` / `ExecutingAsync` — preconditions
+3. Cache read (`FromCache` / `FromCacheAsync`)
+4. `Execute` / `ExecuteAsync` — business logic
+5. Cache write on success (`SaveCache` / `SaveCacheAsync`)
+6. `Executed` / `ExecutedAsync` — final projection
+7. `OnSuccess` / `OnError` (or the async variants)
+8. `Finally` (or `FinallyAsync`)
 
-If an unhandled exception escapes, `UnhandledException(ex)` is called.
+If the first try-block throws, `UnhandledException(ex)` becomes the result.
 
-## Hook Intent
+If every execute-stage hook returns `null`, the runner substitutes `204 NoContent`.
 
-- `Validation`: request structural validation (DataAnnotations).
-- `Executing`: preconditions and short-circuit checks.
-- `Execute`: business logic.
-- `Executed`: final projection or normalization.
-- `OnSuccess` / `OnError`: side effects and telemetry.
-- `Finally`: always-run cleanup.
+### Result-producing hooks
 
-Rule of thumb:
-- return `null` to continue
-- return `Result<TResponse>` to stop pipeline and return that result
+These return `Result<TResponse>?`. `null` means “not implemented / continue”. A non-null result short-circuits later execute-stage hooks.
+
+| Stage | Sync runner (`RunExecute`) | Async runner (`RunExecuteAsync`) |
+|---|---|---|
+| Preconditions | `Executing()` then `ExecutingAsync()` | `ExecutingAsync()` then `Executing()` |
+| Cache read | `FromCache()` | `FromCacheAsync()` |
+| Business logic | `Execute()` then `ExecuteAsync()` | `ExecuteAsync()` then `Execute()` |
+| Projection | `Executed()` then `ExecutedAsync()` | `ExecutedAsync()` then `Executed()` |
+
+This two-way fallback is intentional: a service that only overrides `Execute()` still works when the controller calls `RunAsActionResultAsync`, and a service that only overrides `ExecuteAsync()` still works when the caller uses `RunExecute` (the sync runner blocks on the async hook).
+
+Do not override both flavors of the same stage unless you need different behavior per runner. If both return a result, the runner’s preferred flavor wins (left column vs right column above).
+
+`ExecutedAsync`’s default calls `Executed`. Overriding only `Executed` therefore runs on both runners.
+
+### Side-effect hooks
+
+These do not change the returned `Result`. Each runner calls only its own flavor:
+
+- `RunExecute` → `OnSuccess` / `OnError`, then `Finally`
+- `RunExecuteAsync` → `OnSuccessAsync` / `OnErrorAsync`, then `FinallyAsync`
+
+Defaults:
+
+- `OnSuccessAsync` → `OnSuccess`
+- `OnErrorAsync` → `OnError`
+- `FinallyAsync` → `Finally`
+
+Overriding only the sync hook covers both runners. Overriding an async hook without calling `base` replaces that hook on the async runner only.
+
+Use the async variants for I/O (email, HTTP, extra database work). Keep CPU-only work in the sync hooks.
+
+### What to override
+
+- Structural request rules: DataAnnotations on the request, handled by `Validation()`.
+- Business prechecks: `Executing()` or `ExecutingAsync()`.
+- Core logic: `Execute()` (sync) or `ExecuteAsync()` (I/O). Prefer one, not both.
+- Payload reshape: `Executed()` or `ExecutedAsync()`.
+- Telemetry / side effects: `OnSuccess` / `OnError` / `Finally`, or the `*Async` pair.
+
+### Pipeline Example
+
+```csharp
+protected override Result<Response>? Executing()
+{
+    if (request?.userId == null)
+        return BadRequest("User is required", nameof(request.userId));
+
+    if (!_permissions.CanCreate(request.userId.Value))
+        return Forbidden("Access denied", nameof(request.userId));
+
+    return null; // continue
+}
+```
 
 ## Result Model
 
@@ -57,7 +109,7 @@ Use built-in helpers:
 Controllers are transport adapters:
 - bind request DTOs
 - call service
-- return `RunAsActionResult(Async)`
+- return `RunAsActionResultAsync` (use `RunAsActionResult` only from already-sync callers)
 
 Do not place business logic in controllers.
 
@@ -92,12 +144,12 @@ This keeps cross-cutting logic centralized:
 Services can call services:
 
 ```csharp
-var result = _otherService.RunExecute(input);
+var result = await _otherService.RunExecuteAsync(input);
 if (!result.IsSuccess)
     return Error(result);
 ```
 
-This avoids duplicated business workflows.
+`RunExecute` remains valid for already-sync callers. This avoids duplicated business workflows.
 
 ## Caching
 
@@ -107,4 +159,4 @@ Supports:
 - `IMemoryCache`
 - `IDistributedCache`
 
-Cache writes happen only for successful results.
+Cache reads use `FromCache()` on the sync runner and `FromCacheAsync()` on the async runner. Cache writes happen only for successful results, before `Executed`.

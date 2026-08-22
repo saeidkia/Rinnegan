@@ -63,3 +63,5 @@ public Task<IActionResult> Login(
 
 - Keep the old `Rinnegan` package only for legacy systems that cannot move off MVC5. Source lives in `legacy/Rinnegan`.
 - New features should be built only on `RinneganCore`.
+- Controllers should prefer `RunAsActionResultAsync`. Overriding only `Execute()` remains valid; add `ExecuteAsync()` when the use-case awaits I/O.
+- Post-result work belongs in `OnSuccess` / `OnError` / `Finally` (or the `*Async` variants). These no longer transform `Result` the way legacy `OnSuccess` did.

@@ -61,6 +61,8 @@ public class New : Rinnegan<New.Request, New.Response>
 }
 ```
 
+For I/O-bound use-cases, override `ExecuteAsync()` instead of `Execute()`. Do not override both. Either choice still works with `RunAsActionResultAsync`.
+
 ## 4) Register Services in DI
 
 In `Program.cs`:

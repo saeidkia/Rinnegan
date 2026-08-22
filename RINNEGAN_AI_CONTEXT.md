@@ -115,24 +115,46 @@ public Task<IActionResult> Status(
 
 ## Execution Pipeline Reference
 
-When `RunExecute` / `RunExecuteAsync` runs, the base pipeline follows this order:
+Prefer `RunAsActionResultAsync` / `RunExecuteAsync` in ASP.NET Core. The sync runner exists for compatibility.
+
+Shared stages:
 
 1. `Validation()`
-2. `Executing()`
-3. `FromCache()` / `FromCacheAsync()`
-4. `Execute()` / `ExecuteAsync()`
-5. `SaveCache()` / `SaveCacheAsync()` on successful result
-6. `Executed(result)`
-7. `OnSuccess(result)` or `OnError(result)`
-8. `Finally(result)`
-9. `UnhandledException(ex)` if uncaught error occurs
+2. `Executing` / `ExecutingAsync`
+3. `FromCache` / `FromCacheAsync`
+4. `Execute` / `ExecuteAsync`
+5. `SaveCache` / `SaveCacheAsync` on successful result
+6. `Executed` / `ExecutedAsync`
+7. `OnSuccess` / `OnError` (or `*Async`)
+8. `Finally` / `FinallyAsync`
+9. `UnhandledException(ex)` if the first try-block throws
 
-### Hook Semantics
+If every execute-stage hook returns `null`, the runner returns `204 NoContent`.
 
-- Return `null` from a hook to continue pipeline.
-- Return `Result<TResponse>` to short-circuit and stop later execution hooks.
-- `Execute()` / `ExecuteAsync()` should return final business result.
-- `Executed(result)` can transform final payload before returning to controller.
+### Result-producing hooks
+
+Return `null` to continue. Return `Result<TResponse>` to short-circuit.
+
+| Stage | `RunExecute` | `RunExecuteAsync` |
+|---|---|---|
+| Preconditions | `Executing()` then `ExecutingAsync()` | `ExecutingAsync()` then `Executing()` |
+| Cache | `FromCache()` | `FromCacheAsync()` |
+| Business logic | `Execute()` then `ExecuteAsync()` | `ExecuteAsync()` then `Execute()` |
+| Projection | `Executed()` then `ExecutedAsync()` | `ExecutedAsync()` then `Executed()` |
+
+Implement **one** of `Execute` / `ExecuteAsync`, not both, unless the two runners must differ. Either choice still answers both runners (the sync runner blocks on an async-only `ExecuteAsync`).
+
+`ExecutedAsync` defaults to `Executed`. Override only `Executed` when the projection is sync.
+
+### Side-effect hooks
+
+Each runner calls only its own flavor. Async defaults call the sync hook:
+
+- `OnSuccessAsync` → `OnSuccess`
+- `OnErrorAsync` → `OnError`
+- `FinallyAsync` → `Finally`
+
+Override the sync hook for work that should run on both paths. Override `*Async` (without `base`) only when the async runner should replace that behavior. Put I/O side effects in the async hooks.
 
 ### Pipeline Example
 
@@ -249,7 +271,7 @@ Rule:
 A Rinnegan service can call another service.
 
 ```csharp
-var payment = _newPayment.RunExecute(new NewPayment.Request
+var payment = await _newPayment.RunExecuteAsync(new NewPayment.Request
 {
     amount = request!.amount
 });
@@ -259,6 +281,7 @@ if (!payment.IsSuccess)
 ```
 
 Guidelines:
+- Prefer `RunExecuteAsync` when the caller is already async; `RunExecute` remains valid for sync callers.
 - propagate domain/business errors using `Error(result)`.
 - avoid duplicating workflows in multiple services.
 - keep nested calls understandable (do not create deep hidden chains).
@@ -323,7 +346,7 @@ Follow current convention in your repositories:
 
 - Use DataAnnotations on request models.
 - Keep structural validation in DTO attributes.
-- Keep business validation in `Executing()`.
+- Keep business validation in `Executing()` or `ExecutingAsync()`.
 - Use consistent error keys (`nameof(request.property)` where possible).
 
 ## Controller Rules
@@ -347,6 +370,8 @@ Controllers should not:
 5. Mixing many unrelated workflows into one use-case.
 6. Ignoring helper methods and manually building status/error objects repeatedly.
 7. Overusing static shared mutable state in services.
+8. Overriding both `Execute` and `ExecuteAsync` (or both `Executing` flavors) without intending different runner behavior.
+9. Calling `.Result` / `.Wait()` on Rinnegan services from ASP.NET Core actions; use `RunAsActionResultAsync` instead.
 
 ## Per-Project Customization Template
 
@@ -370,13 +395,14 @@ When AI writes code in this repo, it must:
 1. Add new business features as Rinnegan services, not controller logic.
 2. Use the project wrapper inheritance chain first.
 3. Keep controller actions thin and use `[FromServices]`.
-4. Use `RunAsActionResult` / `RunAsActionResultAsync` in actions.
+4. Use `RunAsActionResultAsync` in actions (sync `RunAsActionResult` only when the caller is already sync).
 5. Use `Result<T>` helper methods (`OK`, `BadRequest`, etc.) consistently.
-6. Put business prechecks in `Executing()`.
-7. Put core logic in `Execute()` or `ExecuteAsync()`.
-8. Use `EnableCaching()` only for deterministic read scenarios.
-9. Reuse existing services via composition when workflow already exists.
-10. Follow naming and folder conventions used in existing features.
+6. Put business prechecks in `Executing()` or `ExecutingAsync()`.
+7. Put core logic in **either** `Execute()` **or** `ExecuteAsync()`, not both. Use `ExecuteAsync()` when the use-case awaits I/O.
+8. Put post-result side effects in `OnSuccess` / `OnError` / `Finally`, or the `*Async` variants for I/O.
+9. Use `EnableCaching()` only for deterministic read scenarios.
+10. Reuse existing services via composition when workflow already exists.
+11. Follow naming and folder conventions used in existing features.
 
 ## Suggested Placement
 
