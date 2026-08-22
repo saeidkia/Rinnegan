@@ -39,7 +39,7 @@ namespace RinneganCore
 
             return result;
         }
-        protected virtual void SaveCache(Result<TResponse>? result, Cache cache)
+        protected virtual void SaveCache(Result<TResponse>? result)
         {
             // cache not set
             // cache found data
@@ -50,7 +50,7 @@ namespace RinneganCore
 
             this.cache.Set(result);
         }
-        protected virtual async Task SaveCacheAsync(Result<TResponse>? result,Cache cache)
+        protected virtual async Task SaveCacheAsync(Result<TResponse>? result)
         {
             // cache not set
             // cache found data
@@ -137,7 +137,7 @@ namespace RinneganCore
             try
             {
                 result = Validation() ?? Executing() ?? FromCache() ?? Execute() ?? ExecuteAsync().Result;
-                SaveCache(result, this.cache);
+                SaveCache(result);
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
@@ -176,7 +176,7 @@ namespace RinneganCore
             try
             {
                 result = Validation() ?? Executing() ?? await FromCacheAsync() ?? await ExecuteAsync() ?? Execute();
-                await SaveCacheAsync(result, this.cache);
+                await SaveCacheAsync(result);
 
                 // executed & null
                 result = Executed(result) ?? new Result<TResponse>(HttpStatusCode.NoContent);
