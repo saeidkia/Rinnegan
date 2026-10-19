@@ -255,40 +255,77 @@ public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
     }
 
 
-
-    protected virtual Result<TResponse> OK(TResponse data)
+    protected virtual Result<TModel> OK<TModel>(TModel data)
     {
-        return new Result<TResponse>(System.Net.HttpStatusCode.OK)
+        return new Result<TModel>(System.Net.HttpStatusCode.OK)
         {
             data = data,
         };
     }
-    protected virtual Result<TResponse> BadRequest(string value, string key = "")
+    protected virtual Result<TModel> BadRequest<TModel>(string value, string key = "")
     {
-        return new Result<TResponse>(System.Net.HttpStatusCode.BadRequest, key, value);
+        return new Result<TModel>(System.Net.HttpStatusCode.BadRequest, key, value);
     }
-    protected virtual Result<TResponse> Forbidden(string value, string key = "")
+    protected virtual Result<TModel> Forbidden<TModel>(string value, string key = "")
     {
-        return new Result<TResponse>(System.Net.HttpStatusCode.Forbidden, key, value);
+        return new Result<TModel>(System.Net.HttpStatusCode.Forbidden, key, value);
     }
-    protected virtual Result<TResponse> NotFound(string value, string key = "")
+    protected virtual Result<TModel> NotFound<TModel>(string value, string key = "")
     {
-        return new Result<TResponse>(System.Net.HttpStatusCode.NotFound, key, value);
+        return new Result<TModel>(System.Net.HttpStatusCode.NotFound, key, value);
     }
-    protected virtual Result<TResponse> UnprocessableContent(string value, string key = "")
+    protected virtual Result<TModel> UnprocessableContent<TModel>(string value, string key = "")
     {
-        return new Result<TResponse>(HttpStatusCode.UnprocessableContent, key, value);
+        return new Result<TModel>(HttpStatusCode.UnprocessableContent, key, value);
     }
-    protected virtual Result<TResponse> BadGateway(string value, string key = "")
+    protected virtual Result<TModel> UnprocessableEntity<TModel>(string value, string key = "")
     {
-        return new Result<TResponse>(System.Net.HttpStatusCode.BadGateway, key, value);
+        return new Result<TModel>(HttpStatusCode.UnprocessableEntity, key, value);
     }
-    protected virtual Result<TResponse> Error(Result result)
+    protected virtual Result<TModel> BadGateway<TModel>(string value, string key = "")
     {
-        return new Result<TResponse>(result.GetStatus())
+        return new Result<TModel>(System.Net.HttpStatusCode.BadGateway, key, value);
+    }
+    protected virtual Result<TModel> Error<TModel>(Result result)
+    {
+        return new Result<TModel>(result.GetStatus())
         {
             errors = result.errors,
         };
+    }
+
+
+    protected virtual Result<TResponse> OK(TResponse data)
+    {
+        return OK<TResponse>(data);
+    }
+    protected virtual Result<TResponse> BadRequest(string value, string key = "")
+    {
+        return BadRequest<TResponse>(value, key);
+    }
+    protected virtual Result<TResponse> Forbidden(string value, string key = "")
+    {
+        return Forbidden<TResponse>(value, key);
+    }
+    protected virtual Result<TResponse> NotFound(string value, string key = "")
+    {
+        return NotFound<TResponse>(value, key);
+    }
+    protected virtual Result<TResponse> UnprocessableContent(string value, string key = "")
+    {
+        return UnprocessableContent<TResponse>(value, key);
+    }
+    protected virtual Result<TResponse> UnprocessableEntity(string value, string key = "")
+    {
+        return UnprocessableEntity<TResponse>(value, key);
+    }
+    protected virtual Result<TResponse> BadGateway(string value, string key = "")
+    {
+        return BadGateway<TResponse>(value, key);
+    }
+    protected virtual Result<TResponse> Error(Result result)
+    {
+        return Error<TResponse>(result);
     }
 
     protected virtual Result Validate<T>(T model)
