@@ -193,6 +193,18 @@ namespace RinneganCore.Tools.Extensions
 
 
         /// <summary>
+        /// Cast DateTime to Jalali string format with time
+        /// </summary>
+        /// <returns>"1403/08/23"</returns>
+        public static string ToJalaliDateTime(this DateTime @this, bool includeMilisecond = false)
+        {
+            PersianCalendar pc = new PersianCalendar();
+
+            return $"{pc.GetYear(@this)}/{pc.GetMonth(@this).ToString("00")}/{pc.GetDayOfMonth(@this).ToString("00")} {@this.Hour.ToString("00")}:{@this.Minute.ToString("00")}:{@this.Second.ToString("00")}{(includeMilisecond ? $".{@this.Millisecond}" : "")}";
+        }
+
+
+        /// <summary>
         /// Cast DateTime to 8 character Time format
         /// </summary>
         /// <returns>"13:24:53"</returns>
