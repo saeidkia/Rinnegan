@@ -161,7 +161,7 @@ public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
 
         try
         {
-            result = Validation() ?? Executing() ?? ExecutingAsync().GetAwaiter().GetResult() ?? FromCache() ?? Execute() ?? ExecuteAsync().GetAwaiter().GetResult();
+            result = Validation() ?? FromCache() ?? Executing() ?? ExecutingAsync().GetAwaiter().GetResult() ?? Execute() ?? ExecuteAsync().GetAwaiter().GetResult();
             SaveCache(result);
 
             // executed & null
@@ -200,7 +200,7 @@ public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
 
         try
         {
-            result = Validation() ?? await ExecutingAsync() ?? Executing() ?? await FromCacheAsync() ?? await ExecuteAsync() ?? Execute();
+            result = Validation() ?? await FromCacheAsync() ?? await ExecutingAsync() ?? Executing() ?? await ExecuteAsync() ?? Execute();
             await SaveCacheAsync(result);
 
             // executed & null
@@ -255,13 +255,6 @@ public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
     }
 
 
-    protected virtual Result<TModel> OK<TModel>(TModel data)
-    {
-        return new Result<TModel>(System.Net.HttpStatusCode.OK)
-        {
-            data = data,
-        };
-    }
     protected virtual Result<TModel> BadRequest<TModel>(string value, string key = "")
     {
         return new Result<TModel>(System.Net.HttpStatusCode.BadRequest, key, value);
@@ -297,7 +290,10 @@ public class Rinnegan<TRequest, TResponse> : IRinnegan<TRequest, TResponse>
 
     protected virtual Result<TResponse> OK(TResponse data)
     {
-        return OK<TResponse>(data);
+        return new Result<TResponse>(System.Net.HttpStatusCode.OK)
+        {
+            data = data,
+        };
     }
     protected virtual Result<TResponse> BadRequest(string value, string key = "")
     {
